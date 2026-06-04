@@ -17,6 +17,13 @@
   .product-bar { background: #0078d4; color: #fff; padding: 8px 0; font-size: 13px; font-weight: 600; }
   .product-bar .inner { max-width: 860px; margin: 0 auto; padding: 0 30px; }
 
+  /* Nav tabs */
+  .nav-bar { background: #fff; border-bottom: 2px solid #e0e0e0; }
+  .nav-bar .inner { max-width: 860px; margin: 0 auto; padding: 0 30px; display: flex; gap: 0; }
+  .nav-tab { padding: 14px 24px; font-size: 14px; font-weight: 600; color: #666; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all .2s; background: none; border-top: none; border-left: none; border-right: none; font-family: inherit; }
+  .nav-tab:hover { color: #0078d4; }
+  .nav-tab.active { color: #0078d4; border-bottom-color: #0078d4; }
+
   .container { max-width: 860px; margin: 0 auto; padding: 30px; }
 
   .intro { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 24px 28px; margin-bottom: 24px; }
@@ -82,13 +89,6 @@
   .info-tooltip img { width: 100%; border-radius: 4px; margin-top: 10px; border: 1px solid #eee; }
   .info-tooltip strong { color: #0078d4; }
 
-  /* Checklist */
-  .checklist { list-style: none; }
-  .checklist li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
-  .checklist li:last-child { border-bottom: none; }
-  .checklist input[type="checkbox"] { width: 18px; height: 18px; accent-color: #0078d4; flex-shrink: 0; }
-  .checklist .done { text-decoration: line-through; color: #999; }
-
   /* Buttons */
   .actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px; }
   .btn-primary { background: #0078d4; color: #fff; border: none; padding: 12px 32px; border-radius: 4px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
@@ -98,6 +98,26 @@
 
   .footer { text-align: center; padding: 24px; font-size: 12px; color: #999; }
   .footer a { color: #666; }
+
+  /* Submissions view */
+  .submissions-list { display: flex; flex-direction: column; gap: 16px; }
+  .submission-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px 24px; transition: box-shadow .2s; }
+  .submission-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+  .submission-card h3 { font-size: 16px; font-weight: 600; color: #1a1a2e; margin-bottom: 8px; }
+  .submission-card h3 a { color: #0078d4; text-decoration: none; }
+  .submission-card h3 a:hover { text-decoration: underline; }
+  .submission-meta { display: flex; gap: 16px; font-size: 13px; color: #888; margin-bottom: 10px; flex-wrap: wrap; }
+  .submission-meta span { display: flex; align-items: center; gap: 4px; }
+  .status-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+  .status-badge.open { background: #e6f4ea; color: #1e7e34; }
+  .status-badge.closed { background: #f0f0f0; color: #666; }
+  .submission-preview { font-size: 13px; color: #555; line-height: 1.5; }
+  .loading { text-align: center; padding: 40px; color: #888; font-size: 14px; }
+  .empty-state { text-align: center; padding: 60px 20px; color: #888; }
+  .empty-state p { font-size: 15px; margin-bottom: 16px; }
+
+  .view { display: none; }
+  .view.active { display: block; }
 
   @media (max-width: 600px) {
     .container { padding: 16px; }
@@ -111,7 +131,7 @@
 
 <div class="page-header">
   <div class="inner">
-    <div class="icon">✉</div>
+    <div class="icon">&#9993;</div>
     <div>
       <h1>Email Notification Onboarding Request</h1>
       <p>Graph Connector Email Notification Team</p>
@@ -120,6 +140,15 @@
 </div>
 <div class="product-bar"><div class="inner">Microsoft 365 &middot; Graph Connectors</div></div>
 
+<div class="nav-bar">
+  <div class="inner">
+    <button class="nav-tab active" onclick="showView('new-request')">New Request</button>
+    <button class="nav-tab" onclick="showView('my-submissions')">My Submissions</button>
+  </div>
+</div>
+
+<!-- View 1: New Request Form -->
+<div class="view active" id="view-new-request">
 <div class="container">
 
   <div class="intro">
@@ -216,7 +245,7 @@
     <div class="section-body">
       <div class="form-group">
         <label>
-          Subject <span class="info-bubble">?<div class="info-tooltip"><strong>Subject</strong> is the main heading shown in the inbox list. It's the first thing recipients see and determines whether they open the email.<svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;margin-top:10px;border-radius:4px;border:1px solid #eee"><rect width="320" height="180" fill="#f9f9f9"/><rect x="10" y="10" width="300" height="160" rx="6" fill="#fff" stroke="#ddd"/><rect x="20" y="20" width="28" height="28" rx="14" fill="#0078d4"/><text x="34" y="39" font-size="14" fill="#fff" text-anchor="middle" font-family="Segoe UI">M</text><rect x="58" y="20" width="120" height="12" rx="2" fill="#333"/><text x="58" y="30" font-size="10" fill="#fff" font-family="Segoe UI">Sender Name</text><rect x="58" y="38" width="220" height="14" rx="2" fill="#0078d4"/><text x="60" y="49" font-size="10" fill="#fff" font-family="Segoe UI" font-weight="600">← Subject line appears here</text><rect x="58" y="58" width="200" height="10" rx="2" fill="#ccc"/><text x="60" y="66" font-size="8" fill="#888" font-family="Segoe UI">Preheader text preview...</text><line x1="20" y1="80" x2="300" y2="80" stroke="#eee" stroke-width="1"/><rect x="20" y="90" width="280" height="16" rx="2" fill="#e8e8e8"/><text x="30" y="102" font-size="10" fill="#666" font-family="Segoe UI">← Title inside email</text><rect x="20" y="115" width="260" height="8" rx="2" fill="#e8e8e8"/><rect x="20" y="128" width="240" height="8" rx="2" fill="#e8e8e8"/><rect x="20" y="141" width="200" height="8" rx="2" fill="#e8e8e8"/><text x="30" y="162" font-size="9" fill="#888" font-family="Segoe UI">← Body content</text></svg></div></span> <span class="required">*</span>
+          Subject <span class="info-bubble">?<div class="info-tooltip"><strong>Subject</strong> is the main heading shown in the inbox list. It's the first thing recipients see and determines whether they open the email.<svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;margin-top:10px;border-radius:4px;border:1px solid #eee"><rect width="320" height="180" fill="#f9f9f9"/><rect x="10" y="10" width="300" height="160" rx="6" fill="#fff" stroke="#ddd"/><rect x="20" y="20" width="28" height="28" rx="14" fill="#0078d4"/><text x="34" y="39" font-size="14" fill="#fff" text-anchor="middle" font-family="Segoe UI">M</text><rect x="58" y="20" width="120" height="12" rx="2" fill="#333"/><text x="58" y="30" font-size="10" fill="#fff" font-family="Segoe UI">Sender Name</text><rect x="58" y="38" width="220" height="14" rx="2" fill="#0078d4"/><text x="60" y="49" font-size="10" fill="#fff" font-family="Segoe UI" font-weight="600">&#8592; Subject line appears here</text><rect x="58" y="58" width="200" height="10" rx="2" fill="#ccc"/><text x="60" y="66" font-size="8" fill="#888" font-family="Segoe UI">Preheader text preview...</text><line x1="20" y1="80" x2="300" y2="80" stroke="#eee" stroke-width="1"/><rect x="20" y="90" width="280" height="16" rx="2" fill="#e8e8e8"/><text x="30" y="102" font-size="10" fill="#666" font-family="Segoe UI">&#8592; Title inside email</text><rect x="20" y="115" width="260" height="8" rx="2" fill="#e8e8e8"/><rect x="20" y="128" width="240" height="8" rx="2" fill="#e8e8e8"/><rect x="20" y="141" width="200" height="8" rx="2" fill="#e8e8e8"/><text x="30" y="162" font-size="9" fill="#888" font-family="Segoe UI">&#8592; Body content</text></svg></div></span> <span class="required">*</span>
         </label>
         <div class="hint-row">
           <div class="hint">Max 70 characters</div>
@@ -230,7 +259,7 @@
       </div>
       <div class="form-group">
         <label>
-          Preheader <span class="info-bubble">?<div class="info-tooltip"><strong>Preheader</strong> is the short summary text that appears right after the subject line in the inbox preview. It gives recipients extra context before they open the email.<svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;margin-top:10px;border-radius:4px;border:1px solid #eee"><rect width="320" height="180" fill="#f9f9f9"/><rect x="10" y="10" width="300" height="160" rx="6" fill="#fff" stroke="#ddd"/><rect x="20" y="20" width="28" height="28" rx="14" fill="#0078d4"/><text x="34" y="39" font-size="14" fill="#fff" text-anchor="middle" font-family="Segoe UI">M</text><rect x="58" y="20" width="120" height="12" rx="2" fill="#333"/><rect x="58" y="38" width="220" height="12" rx="2" fill="#555"/><rect x="58" y="56" width="200" height="14" rx="2" fill="#0078d4"/><text x="60" y="67" font-size="10" fill="#fff" font-family="Segoe UI" font-weight="600">← Preheader preview text here</text><line x1="20" y1="80" x2="300" y2="80" stroke="#eee" stroke-width="1"/><rect x="20" y="90" width="280" height="12" rx="2" fill="#e8e8e8"/><rect x="20" y="110" width="260" height="8" rx="2" fill="#e8e8e8"/><rect x="20" y="123" width="240" height="8" rx="2" fill="#e8e8e8"/><rect x="20" y="136" width="200" height="8" rx="2" fill="#e8e8e8"/></svg></div></span> <span class="required">*</span>
+          Preheader <span class="info-bubble">?<div class="info-tooltip"><strong>Preheader</strong> is the short summary text that appears right after the subject line in the inbox preview. It gives recipients extra context before they open the email.<svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;margin-top:10px;border-radius:4px;border:1px solid #eee"><rect width="320" height="180" fill="#f9f9f9"/><rect x="10" y="10" width="300" height="160" rx="6" fill="#fff" stroke="#ddd"/><rect x="20" y="20" width="28" height="28" rx="14" fill="#0078d4"/><text x="34" y="39" font-size="14" fill="#fff" text-anchor="middle" font-family="Segoe UI">M</text><rect x="58" y="20" width="120" height="12" rx="2" fill="#333"/><rect x="58" y="38" width="220" height="12" rx="2" fill="#555"/><rect x="58" y="56" width="200" height="14" rx="2" fill="#0078d4"/><text x="60" y="67" font-size="10" fill="#fff" font-family="Segoe UI" font-weight="600">&#8592; Preheader preview text here</text><line x1="20" y1="80" x2="300" y2="80" stroke="#eee" stroke-width="1"/><rect x="20" y="90" width="280" height="12" rx="2" fill="#e8e8e8"/><rect x="20" y="110" width="260" height="8" rx="2" fill="#e8e8e8"/><rect x="20" y="123" width="240" height="8" rx="2" fill="#e8e8e8"/><rect x="20" y="136" width="200" height="8" rx="2" fill="#e8e8e8"/></svg></div></span> <span class="required">*</span>
         </label>
         <div class="hint-row">
           <div class="hint">Max 100 characters. Summary text shown in inbox preview.</div>
@@ -244,7 +273,7 @@
       </div>
       <div class="form-group">
         <label>
-          Title <span class="info-bubble">?<div class="info-tooltip"><strong>Title</strong> is the prominent heading displayed at the top of the email body after the recipient opens it. It sets the tone and immediately communicates the purpose of the message.<svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;margin-top:10px;border-radius:4px;border:1px solid #eee"><rect width="320" height="180" fill="#f9f9f9"/><rect x="10" y="10" width="300" height="160" rx="6" fill="#fff" stroke="#ddd"/><rect x="20" y="15" width="280" height="30" rx="4" fill="#1a1a2e"/><text x="30" y="35" font-size="11" fill="#fff" font-family="Segoe UI">Header / Banner</text><rect x="20" y="52" width="240" height="18" rx="2" fill="#0078d4"/><text x="24" y="65" font-size="12" fill="#fff" font-family="Segoe UI" font-weight="600">← Title appears here</text><rect x="20" y="80" width="260" height="8" rx="2" fill="#e8e8e8"/><rect x="20" y="93" width="240" height="8" rx="2" fill="#e8e8e8"/><rect x="20" y="106" width="200" height="8" rx="2" fill="#e8e8e8"/><rect x="20" y="119" width="220" height="8" rx="2" fill="#e8e8e8"/><text x="30" y="148" font-size="9" fill="#888" font-family="Segoe UI">Body content below...</text></svg></div></span> <span class="required">*</span>
+          Title <span class="info-bubble">?<div class="info-tooltip"><strong>Title</strong> is the prominent heading displayed at the top of the email body after the recipient opens it. It sets the tone and immediately communicates the purpose of the message.<svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;margin-top:10px;border-radius:4px;border:1px solid #eee"><rect width="320" height="180" fill="#f9f9f9"/><rect x="10" y="10" width="300" height="160" rx="6" fill="#fff" stroke="#ddd"/><rect x="20" y="15" width="280" height="30" rx="4" fill="#1a1a2e"/><text x="30" y="35" font-size="11" fill="#fff" font-family="Segoe UI">Header / Banner</text><rect x="20" y="52" width="240" height="18" rx="2" fill="#0078d4"/><text x="24" y="65" font-size="12" fill="#fff" font-family="Segoe UI" font-weight="600">&#8592; Title appears here</text><rect x="20" y="80" width="260" height="8" rx="2" fill="#e8e8e8"/><rect x="20" y="93" width="240" height="8" rx="2" fill="#e8e8e8"/><rect x="20" y="106" width="200" height="8" rx="2" fill="#e8e8e8"/><rect x="20" y="119" width="220" height="8" rx="2" fill="#e8e8e8"/><text x="30" y="148" font-size="9" fill="#888" font-family="Segoe UI">Body content below...</text></svg></div></span> <span class="required">*</span>
         </label>
         <div class="hint-row">
           <div class="hint">Min 20 / Max 80 characters</div>
@@ -258,7 +287,7 @@
       </div>
       <div class="form-group">
         <label>
-          Body <span class="info-bubble">?<div class="info-tooltip"><strong>Body</strong> is the main content area of the email. It contains the details, instructions, and call-to-action. Keep it concise — no greetings or sign-offs.<svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;margin-top:10px;border-radius:4px;border:1px solid #eee"><rect width="320" height="180" fill="#f9f9f9"/><rect x="10" y="10" width="300" height="160" rx="6" fill="#fff" stroke="#ddd"/><rect x="20" y="15" width="280" height="24" rx="4" fill="#1a1a2e"/><text x="30" y="31" font-size="10" fill="#fff" font-family="Segoe UI">Header</text><rect x="20" y="44" width="200" height="12" rx="2" fill="#888"/><text x="24" y="53" font-size="9" fill="#fff" font-family="Segoe UI">Title</text><rect x="20" y="64" width="270" height="8" rx="2" fill="#0078d4" opacity=".7"/><rect x="20" y="77" width="250" height="8" rx="2" fill="#0078d4" opacity=".7"/><rect x="20" y="90" width="260" height="8" rx="2" fill="#0078d4" opacity=".7"/><rect x="20" y="103" width="230" height="8" rx="2" fill="#0078d4" opacity=".7"/><rect x="20" y="116" width="240" height="8" rx="2" fill="#0078d4" opacity=".7"/><text x="30" y="143" font-size="10" fill="#0078d4" font-family="Segoe UI" font-weight="600">← Body content area</text><rect x="20" y="150" width="80" height="16" rx="3" fill="#0078d4"/><text x="34" y="162" font-size="9" fill="#fff" font-family="Segoe UI">CTA Button</text></svg></div></span> <span class="required">*</span>
+          Body <span class="info-bubble">?<div class="info-tooltip"><strong>Body</strong> is the main content area of the email. It contains the details, instructions, and call-to-action. Keep it concise — no greetings or sign-offs.<svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;margin-top:10px;border-radius:4px;border:1px solid #eee"><rect width="320" height="180" fill="#f9f9f9"/><rect x="10" y="10" width="300" height="160" rx="6" fill="#fff" stroke="#ddd"/><rect x="20" y="15" width="280" height="24" rx="4" fill="#1a1a2e"/><text x="30" y="31" font-size="10" fill="#fff" font-family="Segoe UI">Header</text><rect x="20" y="44" width="200" height="12" rx="2" fill="#888"/><text x="24" y="53" font-size="9" fill="#fff" font-family="Segoe UI">Title</text><rect x="20" y="64" width="270" height="8" rx="2" fill="#0078d4" opacity=".7"/><rect x="20" y="77" width="250" height="8" rx="2" fill="#0078d4" opacity=".7"/><rect x="20" y="90" width="260" height="8" rx="2" fill="#0078d4" opacity=".7"/><rect x="20" y="103" width="230" height="8" rx="2" fill="#0078d4" opacity=".7"/><rect x="20" y="116" width="240" height="8" rx="2" fill="#0078d4" opacity=".7"/><text x="30" y="143" font-size="10" fill="#0078d4" font-family="Segoe UI" font-weight="600">&#8592; Body content area</text><rect x="20" y="150" width="80" height="16" rx="3" fill="#0078d4"/><text x="34" y="162" font-size="9" fill="#fff" font-family="Segoe UI">CTA Button</text></svg></div></span> <span class="required">*</span>
         </label>
         <div class="hint-row">
           <div class="hint">No greetings or closings. Keep under 300 words. Use <code>[ParameterName]</code> for dynamic content. CTA button text under 28 characters.</div>
@@ -279,32 +308,122 @@
   </div>
 
 </div>
+</div>
+
+<!-- View 2: My Submissions -->
+<div class="view" id="view-my-submissions">
+<div class="container">
+
+  <div class="intro">
+    <p>View all submitted email notification requirements. Click on any submission to view details or edit it on GitHub. Use the filter to show open or closed requests.</p>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <div style="display:flex;gap:8px;">
+      <button class="btn-primary" style="padding:8px 20px;font-size:13px;" onclick="loadSubmissions('open')" id="filter-open">Open</button>
+      <button class="btn-secondary" style="padding:8px 20px;font-size:13px;" onclick="loadSubmissions('closed')" id="filter-closed">Closed</button>
+      <button class="btn-secondary" style="padding:8px 20px;font-size:13px;" onclick="loadSubmissions('all')" id="filter-all">All</button>
+    </div>
+    <button class="btn-secondary" style="padding:8px 16px;font-size:13px;" onclick="loadSubmissions()">Refresh</button>
+  </div>
+
+  <div id="submissions-container">
+    <div class="loading">Loading submissions...</div>
+  </div>
+
+</div>
+</div>
 
 <div class="footer">
   <p>Microsoft Corporation, One Microsoft Way, Redmond, WA 98052 USA &middot; <a href="#">Privacy Statement</a></p>
 </div>
 
 <script>
+var REPO = 'ms-anggao/Email-requirement-intake-form';
+var LABEL = 'email-requirement';
+var currentFilter = 'open';
+
+// === Navigation ===
+function showView(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  document.querySelector('[onclick="showView(\'' + view + '\')"]').classList.add('active');
+  if (view === 'my-submissions') loadSubmissions();
+}
+
+// === Submissions ===
+function loadSubmissions(filter) {
+  if (filter) currentFilter = filter;
+  document.querySelectorAll('[id^="filter-"]').forEach(b => b.className = 'btn-secondary');
+  var activeBtn = document.getElementById('filter-' + currentFilter);
+  if (activeBtn) { activeBtn.className = 'btn-primary'; activeBtn.style.cssText = 'padding:8px 20px;font-size:13px;'; }
+
+  var container = document.getElementById('submissions-container');
+  container.innerHTML = '<div class="loading">Loading submissions...</div>';
+
+  var state = currentFilter === 'all' ? 'all' : currentFilter;
+  var url = 'https://api.github.com/repos/' + REPO + '/issues?labels=' + LABEL + '&per_page=50&state=' + state;
+
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(issues) {
+      if (!issues.length) {
+        container.innerHTML = '<div class="empty-state"><p>No submissions found.</p><button class="btn-primary" onclick="showView(\'new-request\')">Create New Request</button></div>';
+        return;
+      }
+      var html = '<div class="submissions-list">';
+      issues.forEach(function(issue) {
+        var date = new Date(issue.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        var stateClass = issue.state === 'open' ? 'open' : 'closed';
+        var stateLabel = issue.state === 'open' ? 'Open' : 'Closed';
+        var preview = (issue.body || '').substring(0, 200).replace(/[#*|`]/g, '');
+        if ((issue.body || '').length > 200) preview += '...';
+        html += '<div class="submission-card">';
+        html += '<h3><a href="' + issue.html_url + '" target="_blank">' + escapeHtml(issue.title) + '</a></h3>';
+        html += '<div class="submission-meta">';
+        html += '<span><span class="status-badge ' + stateClass + '">' + stateLabel + '</span></span>';
+        html += '<span>Created: ' + date + '</span>';
+        html += '<span>By: ' + escapeHtml(issue.user.login) + '</span>';
+        html += '</div>';
+        html += '<div class="submission-preview">' + escapeHtml(preview) + '</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    })
+    .catch(function(err) {
+      container.innerHTML = '<div class="empty-state"><p>Failed to load submissions. GitHub API may be rate-limited.</p><p style="font-size:13px;color:#999;">' + err.message + '</p></div>';
+    });
+}
+
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// === Form: Parameter helpers ===
 function getDefinedParams() {
-  const rows = document.querySelectorAll('#paramsTable tbody tr');
-  const params = [];
-  rows.forEach(row => {
-    const name = row.querySelector('td:first-child input').value.trim();
+  var rows = document.querySelectorAll('#paramsTable tbody tr');
+  var params = [];
+  rows.forEach(function(row) {
+    var name = row.querySelector('td:first-child input').value.trim();
     if (name) params.push(name.startsWith('[') ? name : '[' + name + ']');
   });
   return params;
 }
 
 function toggleParamDropdown(btn, targetId) {
-  document.querySelectorAll('.param-dropdown.open').forEach(d => d.classList.remove('open'));
-  const dropdown = document.getElementById('dropdown-' + targetId);
-  const params = getDefinedParams();
+  document.querySelectorAll('.param-dropdown.open').forEach(function(d) { d.classList.remove('open'); });
+  var dropdown = document.getElementById('dropdown-' + targetId);
+  var params = getDefinedParams();
   dropdown.innerHTML = '';
   if (params.length === 0) {
     dropdown.innerHTML = '<div class="param-empty">No parameters defined yet. Add them in Section 2.</div>';
   } else {
-    params.forEach(p => {
-      const item = document.createElement('div');
+    params.forEach(function(p) {
+      var item = document.createElement('div');
       item.className = 'param-item';
       item.textContent = p;
       item.onclick = function() { insertParamInto(targetId, p); dropdown.classList.remove('open'); };
@@ -315,14 +434,14 @@ function toggleParamDropdown(btn, targetId) {
 }
 
 function insertParamInto(fieldId, param) {
-  const el = document.getElementById(fieldId);
+  var el = document.getElementById(fieldId);
   el.focus();
-  const span = document.createElement('span');
+  var span = document.createElement('span');
   span.className = 'param-tag';
   span.textContent = param;
-  const sel = window.getSelection();
+  var sel = window.getSelection();
   if (sel.rangeCount) {
-    const range = sel.getRangeAt(0);
+    var range = sel.getRangeAt(0);
     range.deleteContents();
     range.insertNode(span);
     range.setStartAfter(span);
@@ -340,17 +459,17 @@ function getTextContent(id) {
 }
 
 function highlightParams(el) {
-  const sel = window.getSelection();
-  let cursorOffset = 0;
+  var sel = window.getSelection();
+  var cursorOffset = 0;
   if (sel.rangeCount && el.contains(sel.anchorNode)) {
-    const range = sel.getRangeAt(0);
-    const preRange = document.createRange();
+    var range = sel.getRangeAt(0);
+    var preRange = document.createRange();
     preRange.setStart(el, 0);
     preRange.setEnd(range.startContainer, range.startOffset);
     cursorOffset = preRange.toString().length;
   }
-  const text = el.textContent || '';
-  const html = text.replace(/\[([^\]]+)\]/g, '<span class="param-tag">[$1]</span>');
+  var text = el.textContent || '';
+  var html = text.replace(/\[([^\]]+)\]/g, '<span class="param-tag">[$1]</span>');
   if (el.innerHTML !== html) {
     el.innerHTML = html;
     restoreCursor(el, cursorOffset);
@@ -358,11 +477,11 @@ function highlightParams(el) {
 }
 
 function restoreCursor(el, offset) {
-  const sel = window.getSelection();
-  const range = document.createRange();
-  let current = 0;
-  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-  let node;
+  var sel = window.getSelection();
+  var range = document.createRange();
+  var current = 0;
+  var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  var node;
   while (node = walker.nextNode()) {
     if (current + node.length >= offset) {
       range.setStart(node, offset - current);
@@ -380,75 +499,52 @@ function restoreCursor(el, offset) {
 }
 
 function updateCountRich(id, max, min) {
-  const val = getTextContent(id);
-  const el = document.getElementById(id + '-count');
-  const len = val.length;
-  let text = len + ' / ' + max;
+  var val = getTextContent(id);
+  var el = document.getElementById(id + '-count');
+  var len = val.length;
+  var text = len + ' / ' + max;
   if (min) text += ' (min ' + min + ')';
   el.textContent = text;
   el.className = 'char-count' + ((len > max || (min && len > 0 && len < min)) ? ' over' : '');
 }
 
 function updateWordCountRich(id, max) {
-  const val = getTextContent(id).trim();
-  const el = document.getElementById(id + '-count');
-  const words = val === '' ? 0 : val.split(/\s+/).length;
+  var val = getTextContent(id).trim();
+  var el = document.getElementById(id + '-count');
+  var words = val === '' ? 0 : val.split(/\s+/).length;
   el.textContent = words + ' / ' + max + ' words';
   el.className = 'char-count' + (words > max ? ' over' : '');
 }
 
 document.addEventListener('click', function(e) {
   if (!e.target.closest('.field-with-insert')) {
-    document.querySelectorAll('.param-dropdown.open').forEach(d => d.classList.remove('open'));
+    document.querySelectorAll('.param-dropdown.open').forEach(function(d) { d.classList.remove('open'); });
   }
 });
 
+// === Form: Table ===
 function addParamRow() {
-  const tbody = document.querySelector('#paramsTable tbody');
-  const row = document.createElement('tr');
-  row.innerHTML = `
-    <td><input type="text" placeholder="[ParameterName]"></td>
-    <td><select><option>String</option><option>Integer</option><option>Boolean</option></select></td>
-    <td><select><option>Required</option><option>Optional</option></select></td>
-    <td><input type="text" placeholder='"example value"'></td>
-    <td style="text-align:center"><button class="btn-remove" onclick="removeRow(this)" title="Remove">&times;</button></td>
-  `;
+  var tbody = document.querySelector('#paramsTable tbody');
+  var row = document.createElement('tr');
+  row.innerHTML = '<td><input type="text" placeholder="[ParameterName]"></td><td><select><option>String</option><option>Integer</option><option>Boolean</option></select></td><td><select><option>Required</option><option>Optional</option></select></td><td><input type="text" placeholder=\'"example value"\'></td><td style="text-align:center"><button class="btn-remove" onclick="removeRow(this)" title="Remove">&times;</button></td>';
   tbody.appendChild(row);
 }
 
 function removeRow(btn) {
-  const tbody = document.querySelector('#paramsTable tbody');
+  var tbody = document.querySelector('#paramsTable tbody');
   if (tbody.rows.length > 1) {
     btn.closest('tr').remove();
   }
 }
 
-function updateCount(id, max, min) {
-  const val = document.getElementById(id).value;
-  const el = document.getElementById(id + '-count');
-  const len = val.length;
-  let text = len + ' / ' + max;
-  if (min) text += ' (min ' + min + ')';
-  el.textContent = text;
-  el.className = 'char-count' + ((len > max || (min && len > 0 && len < min)) ? ' over' : '');
-}
-
-function updateWordCount(id, max) {
-  const val = document.getElementById(id).value.trim();
-  const el = document.getElementById(id + '-count');
-  const words = val === '' ? 0 : val.split(/\s+/).length;
-  el.textContent = words + ' / ' + max + ' words';
-  el.className = 'char-count' + (words > max ? ' over' : '');
-}
-
+// === Form: Reset ===
 function resetForm() {
   if (confirm('Are you sure you want to reset all fields?')) {
-    document.querySelectorAll('input[type="text"], textarea').forEach(el => el.value = '');
-    document.querySelectorAll('.rich-input').forEach(el => el.innerHTML = '');
-    document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
-    document.querySelectorAll('.checklist input').forEach(el => el.checked = false);
-    ['subject', 'preheader', 'title'].forEach(id => {
-      const el = document.getElementById(id + '-count');
+    document.querySelectorAll('#view-new-request input[type="text"], #view-new-request textarea').forEach(function(el) { el.value = ''; });
+    document.querySelectorAll('#view-new-request .rich-input').forEach(function(el) { el.innerHTML = ''; });
+    document.querySelectorAll('#view-new-request select').forEach(function(el) { el.selectedIndex = 0; });
+    ['subject', 'preheader', 'title'].forEach(function(id) {
+      var el = document.getElementById(id + '-count');
       if (el) el.textContent = '0 / ' + (id === 'preheader' ? 100 : id === 'title' ? '80 (min 20)' : 70);
       if (el) el.className = 'char-count';
     });
@@ -457,19 +553,69 @@ function resetForm() {
   }
 }
 
+// === Form: Submit to GitHub Issues ===
+function buildIssueBody() {
+  var name = document.getElementById('templateName').value.trim();
+  var purpose = document.getElementById('purpose').value.trim();
+  var audience = document.getElementById('audience').value.trim();
+  var trigger = document.getElementById('trigger').value.trim();
+  var cta = document.getElementById('cta').value.trim();
+  var subject = getTextContent('subject');
+  var preheader = getTextContent('preheader');
+  var title = getTextContent('title');
+  var body = getTextContent('body');
+
+  var paramsRows = document.querySelectorAll('#paramsTable tbody tr');
+  var paramsTable = '| Name | Type | Required / Optional | Sample Value |\n|---|---|---|---|\n';
+  var hasParams = false;
+  paramsRows.forEach(function(row) {
+    var cells = row.querySelectorAll('td');
+    var pName = cells[0].querySelector('input').value.trim();
+    var pType = cells[1].querySelector('select').value;
+    var pReq = cells[2].querySelector('select').value;
+    var pSample = cells[3].querySelector('input').value.trim();
+    if (pName) {
+      hasParams = true;
+      paramsTable += '| ' + pName + ' | ' + pType + ' | ' + pReq + ' | ' + pSample + ' |\n';
+    }
+  });
+
+  var md = '## Email Requirement Name\n' + name + '\n\n';
+  md += '## Purpose\n' + purpose + '\n\n';
+  md += '## Audience\n' + audience + '\n\n';
+  md += '## Trigger Condition\n' + trigger + '\n\n';
+  md += '## Primary Call to Action\n' + cta + '\n\n';
+  if (hasParams) {
+    md += '## Parameters\n' + paramsTable + '\n';
+  }
+  md += '## Email Content\n\n';
+  md += '### Subject\n' + subject + '\n\n';
+  md += '### Preheader\n' + preheader + '\n\n';
+  md += '### Title\n' + title + '\n\n';
+  md += '### Body\n' + body + '\n';
+
+  return md;
+}
+
 function submitForm() {
-  const required = ['templateName', 'purpose', 'audience', 'trigger', 'cta', 'subject', 'preheader', 'title', 'body'];
-  const richFields = ['subject', 'preheader', 'title', 'body'];
-  for (const id of required) {
-    const el = document.getElementById(id);
-    const val = richFields.includes(id) ? (el.textContent || '').trim() : el.value.trim();
+  var required = ['templateName', 'purpose', 'audience', 'trigger', 'cta', 'subject', 'preheader', 'title', 'body'];
+  var richFields = ['subject', 'preheader', 'title', 'body'];
+  for (var i = 0; i < required.length; i++) {
+    var id = required[i];
+    var el = document.getElementById(id);
+    var val = richFields.indexOf(id) >= 0 ? (el.textContent || '').trim() : el.value.trim();
     if (!val) {
       alert('Please fill in all required fields (marked with *).');
-      document.getElementById(id).focus();
+      el.focus();
       return;
     }
   }
-  alert('Your request has been submitted. The Graph Connector Email Notification team will review it within 3 business days.');
+
+  var issueTitle = document.getElementById('templateName').value.trim();
+  var issueBody = buildIssueBody();
+  var url = 'https://github.com/' + REPO + '/issues/new?title=' + encodeURIComponent(issueTitle) + '&body=' + encodeURIComponent(issueBody) + '&labels=' + encodeURIComponent(LABEL);
+
+  window.open(url, '_blank');
 }
 </script>
 
