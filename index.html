@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
 <title>Graph Connector Email Notification - Onboarding Request</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -99,6 +100,22 @@
   .footer { text-align: center; padding: 24px; font-size: 12px; color: #999; }
   .footer a { color: #666; }
 
+  /* Login screen */
+  .login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; padding: 40px 20px; }
+  .login-screen .login-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 48px 40px; max-width: 420px; width: 100%; box-shadow: 0 4px 16px rgba(0,0,0,.06); }
+  .login-screen .login-icon { font-size: 48px; margin-bottom: 16px; }
+  .login-screen h2 { font-size: 22px; font-weight: 600; color: #1a1a2e; margin-bottom: 8px; }
+  .login-screen p { font-size: 14px; color: #666; margin-bottom: 28px; }
+  .btn-microsoft { display: inline-flex; align-items: center; gap: 10px; background: #fff; color: #333; border: 1px solid #ccc; padding: 12px 28px; border-radius: 4px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; transition: box-shadow .2s; }
+  .btn-microsoft:hover { box-shadow: 0 2px 8px rgba(0,0,0,.12); border-color: #999; }
+  .btn-microsoft svg { flex-shrink: 0; }
+
+  /* User info in header */
+  .user-info { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+  .user-info .user-name { font-size: 13px; color: #b0b0c8; }
+  .user-info .btn-signout { background: none; border: 1px solid rgba(255,255,255,.3); color: #b0b0c8; padding: 4px 12px; border-radius: 3px; font-size: 12px; cursor: pointer; font-family: inherit; }
+  .user-info .btn-signout:hover { border-color: #fff; color: #fff; }
+
   /* Submissions view */
   .submissions-list { display: flex; flex-direction: column; gap: 16px; }
   .submission-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px 24px; transition: box-shadow .2s; }
@@ -136,11 +153,15 @@
       <h1>Email Notification Onboarding Request</h1>
       <p>Graph Connector Email Notification Team</p>
     </div>
+    <div class="user-info" id="user-info" style="display:none;">
+      <span class="user-name" id="user-display"></span>
+      <button class="btn-signout" onclick="signOut()">Sign out</button>
+    </div>
   </div>
 </div>
 <div class="product-bar"><div class="inner">Microsoft 365 &middot; Graph Connectors</div></div>
 
-<div class="nav-bar">
+<div class="nav-bar" id="nav-bar" style="display:none;">
   <div class="inner">
     <button class="nav-tab active" onclick="showView('new-request')">New Request</button>
     <button class="nav-tab" onclick="showView('my-submissions')">My Submissions</button>
@@ -334,11 +355,102 @@
 </div>
 </div>
 
+<!-- Login Screen -->
+<div class="view" id="view-login">
+  <div class="login-screen">
+    <div class="login-card">
+      <div class="login-icon">&#9993;</div>
+      <h2>Email Notification Intake</h2>
+      <p>Sign in with your Microsoft corporate account to submit or view email notification requirements.</p>
+      <button class="btn-microsoft" onclick="signIn()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21"><rect x="0" y="0" width="10" height="10" fill="#f25022"/><rect x="11" y="0" width="10" height="10" fill="#7fba00"/><rect x="0" y="11" width="10" height="10" fill="#00a4ef"/><rect x="11" y="11" width="10" height="10" fill="#ffb900"/></svg>
+        Sign in with Microsoft
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="footer">
   <p>Microsoft Corporation, One Microsoft Way, Redmond, WA 98052 USA &middot; <a href="#">Privacy Statement</a></p>
 </div>
 
 <script>
+// === MSAL Auth ===
+var msalConfig = {
+  auth: {
+    clientId: '89419ed1-ca1e-48e8-b1fb-8e46d293acff',
+    authority: 'https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47',
+    redirectUri: window.location.origin + window.location.pathname,
+  },
+  cache: { cacheLocation: 'localStorage', storeAuthStateInCookie: false }
+};
+var msalInstance = new msal.PublicClientApplication(msalConfig);
+var currentUser = null;
+
+function initAuth() {
+  msalInstance.initialize().then(function() {
+    msalInstance.handleRedirectPromise().then(function(response) {
+      if (response) {
+        msalInstance.setActiveAccount(response.account);
+      }
+      var account = msalInstance.getActiveAccount();
+      if (!account) {
+        var accounts = msalInstance.getAllAccounts();
+        if (accounts.length > 0) {
+          msalInstance.setActiveAccount(accounts[0]);
+          account = accounts[0];
+        }
+      }
+      if (account) {
+        onLoginSuccess(account);
+      } else {
+        showLoginScreen();
+      }
+    }).catch(function(err) {
+      console.error('Auth error:', err);
+      showLoginScreen();
+    });
+  });
+}
+
+function signIn() {
+  msalInstance.loginPopup({ scopes: ['User.Read'] })
+    .then(function(response) {
+      msalInstance.setActiveAccount(response.account);
+      onLoginSuccess(response.account);
+    })
+    .catch(function(err) {
+      console.error('Login error:', err);
+    });
+}
+
+function signOut() {
+  msalInstance.logoutPopup().then(function() {
+    currentUser = null;
+    showLoginScreen();
+  });
+}
+
+function onLoginSuccess(account) {
+  currentUser = { name: account.name, email: account.username };
+  document.getElementById('user-display').textContent = currentUser.name || currentUser.email;
+  document.getElementById('user-info').style.display = 'flex';
+  document.getElementById('nav-bar').style.display = '';
+  document.getElementById('view-login').style.display = 'none';
+  showView('new-request');
+}
+
+function showLoginScreen() {
+  currentUser = null;
+  document.getElementById('user-info').style.display = 'none';
+  document.getElementById('nav-bar').style.display = 'none';
+  document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+  document.getElementById('view-login').style.display = 'block';
+  document.getElementById('view-login').classList.add('active');
+}
+
+window.addEventListener('DOMContentLoaded', initAuth);
+
 var REPO = 'ms-anggao/Email-requirement-intake-form';
 var API_BASE = 'https://func-email-intake.azurewebsites.net/api';
 var currentFilter = 'open';
@@ -650,7 +762,7 @@ function submitForm() {
     preheader: getTextContent('preheader'),
     title: getTextContent('title'),
     body: getTextContent('body'),
-    submitter: prompt('Enter your name or alias:', '') || 'anonymous'
+    submitter: currentUser ? currentUser.email : 'anonymous'
   };
 
   var submitBtn = document.querySelector('.actions .btn-primary');
