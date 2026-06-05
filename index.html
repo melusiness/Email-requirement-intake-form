@@ -67,10 +67,15 @@
   .params-table td select { width: 100%; padding: 9px 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; font-family: inherit; background: #fbfbfd; color: #222; }
   .params-table td input:focus,
   .params-table td select:focus { outline: none; border-color: #b0b8d0; background: #fff; }
-  .btn-remove { background: none; border: none; color: #ccc; cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 4px; transition: color .15s; }
+  .btn-remove { background: none; border: none; color: #ccc; cursor: pointer; font-size: 18px; padding: 4px 6px; border-radius: 4px; transition: color .15s; }
   .btn-remove:hover { color: #c0392b; background: #fdf2f2; }
-  .btn-add { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: #888; border: 1px dashed #ddd; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 600; transition: all .15s; }
-  .btn-add:hover { border-color: #bbb; color: #555; background: #fafafa; }
+  .btn-param-add { background: #eef1f8; color: #3b4d8a; border: 1px solid #d5daea; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all .15s; margin-right: 4px; }
+  .btn-param-add:hover { background: #e2e7f2; }
+  .btn-param-add.locked { background: none; border: none; color: #3a8a3a; cursor: default; padding: 4px 6px; font-size: 14px; }
+  .params-table tr.locked td input,
+  .params-table tr.locked td select { background: #f5f5f5; color: #999; border-color: #eee; }
+  .btn-add { display: inline-flex; align-items: center; gap: 6px; background: #eef1f8; color: #3b4d8a; border: 1px dashed #d5daea; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 600; transition: all .15s; }
+  .btn-add:hover { background: #e2e7f2; border-color: #b8c2d9; }
 
   /* Insert parameter button & dropdown */
   .field-with-insert { position: relative; display: flex; justify-content: flex-end; margin-bottom: 8px; }
@@ -320,25 +325,14 @@
         <tbody>
           <tr>
             <td><input type="text" placeholder="[ParameterName]"></td>
-            <td>
-              <select>
-                <option>String</option>
-                <option>Integer</option>
-                <option>Boolean</option>
-              </select>
-            </td>
-            <td>
-              <select>
-                <option>Required</option>
-                <option>Optional</option>
-              </select>
-            </td>
+            <td><select><option>String</option><option>Integer</option><option>Boolean</option></select></td>
+            <td><select><option>Required</option><option>Optional</option></select></td>
             <td><input type="text" placeholder='"example value"'></td>
-            <td style="text-align:center"><button class="btn-remove" onclick="removeRow(this)" title="Remove">&times;</button></td>
+            <td style="text-align:center;white-space:nowrap;"><button class="btn-param-add" onclick="lockRow(this)">Add</button><button class="btn-remove" onclick="removeRow(this)" title="Remove">&times;</button></td>
           </tr>
         </tbody>
       </table>
-      <button class="btn-add" onclick="addParamRow()">+ Add Parameter</button>
+      <button class="btn-add" onclick="addParamRow()">Add Row</button>
     </div>
   </div>
 
@@ -696,7 +690,8 @@ function editSubmission(id) {
         tbody.innerHTML = '';
         params.forEach(function(p) {
           var row = document.createElement('tr');
-          row.innerHTML = '<td><input type="text" placeholder="[ParameterName]"></td><td><select><option>String</option><option>Integer</option><option>Boolean</option></select></td><td><select><option>Required</option><option>Optional</option></select></td><td><input type="text" placeholder=\'"example value"\'></td><td style="text-align:center"><button class="btn-remove" onclick="removeRow(this)" title="Remove">&times;</button></td>';
+          row.innerHTML = '<td><input type="text" placeholder="[ParameterName]" disabled></td><td><select disabled><option>String</option><option>Integer</option><option>Boolean</option></select></td><td><select disabled><option>Required</option><option>Optional</option></select></td><td><input type="text" placeholder=\'"example value"\' disabled></td><td style="text-align:center;white-space:nowrap;"><button class="btn-param-add locked" disabled><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#3a8a3a" stroke-width="2" stroke-linecap="round"><path d="M2 7.5l3.5 3.5 6.5-7"/></svg></button><button class="btn-remove" onclick="removeRow(this)" title="Remove">&times;</button></td>';
+          row.classList.add('locked');
           row.querySelector('td:nth-child(1) input').value = p.name || '';
           row.querySelector('td:nth-child(2) select').value = p.type || 'String';
           row.querySelector('td:nth-child(3) select').value = p.required || 'Required';
@@ -841,7 +836,7 @@ document.addEventListener('click', function(e) {
 function addParamRow() {
   var tbody = document.querySelector('#paramsTable tbody');
   var row = document.createElement('tr');
-  row.innerHTML = '<td><input type="text" placeholder="[ParameterName]"></td><td><select><option>String</option><option>Integer</option><option>Boolean</option></select></td><td><select><option>Required</option><option>Optional</option></select></td><td><input type="text" placeholder=\'"example value"\'></td><td style="text-align:center"><button class="btn-remove" onclick="removeRow(this)" title="Remove">&times;</button></td>';
+  row.innerHTML = '<td><input type="text" placeholder="[ParameterName]"></td><td><select><option>String</option><option>Integer</option><option>Boolean</option></select></td><td><select><option>Required</option><option>Optional</option></select></td><td><input type="text" placeholder=\'"example value"\'></td><td style="text-align:center;white-space:nowrap;"><button class="btn-param-add" onclick="lockRow(this)">Add</button><button class="btn-remove" onclick="removeRow(this)" title="Remove">&times;</button></td>';
   tbody.appendChild(row);
 }
 
@@ -851,6 +846,18 @@ function removeRow(btn) {
     btn.closest('tr').remove();
   }
 }
+
+function lockRow(btn) {
+  var row = btn.closest('tr');
+  var nameVal = row.querySelector('td:nth-child(1) input').value.trim();
+  if (!nameVal) { row.querySelector('td:nth-child(1) input').focus(); return; }
+  row.classList.add('locked');
+  row.querySelectorAll('input, select').forEach(function(el) { el.disabled = true; });
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#3a8a3a" stroke-width="2" stroke-linecap="round"><path d="M2 7.5l3.5 3.5 6.5-7"/></svg>';
+  btn.classList.add('locked');
+  btn.disabled = true;
+}
+
 
 // === Form: Save Draft ===
 var DRAFT_KEY = 'email-intake-draft';
@@ -934,17 +941,21 @@ function loadDraft() {
   if (data.title) document.getElementById('title').innerHTML = data.title;
   if (data.body) document.getElementById('body').innerHTML = data.body;
   if (data.params && data.params.length) {
-    var tbody = document.querySelector('#paramsTable tbody');
-    tbody.innerHTML = '';
-    data.params.forEach(function(p) {
+    var validParams = data.params.filter(function(p) { return p.name && p.name.trim(); });
+    if (validParams.length) {
+      var tbody = document.querySelector('#paramsTable tbody');
+      tbody.innerHTML = '';
+      validParams.forEach(function(p) {
       var row = document.createElement('tr');
-      row.innerHTML = '<td><input type="text" placeholder="[ParameterName]"></td><td><select><option>String</option><option>Integer</option><option>Boolean</option></select></td><td><select><option>Required</option><option>Optional</option></select></td><td><input type="text" placeholder=\'"example value"\'></td><td style="text-align:center"><button class="btn-remove" onclick="removeRow(this)" title="Remove">&times;</button></td>';
+      row.innerHTML = '<td><input type="text" placeholder="[ParameterName]" disabled></td><td><select disabled><option>String</option><option>Integer</option><option>Boolean</option></select></td><td><select disabled><option>Required</option><option>Optional</option></select></td><td><input type="text" placeholder=\'"example value"\' disabled></td><td style="text-align:center;white-space:nowrap;"><button class="btn-param-add locked" disabled><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#3a8a3a" stroke-width="2" stroke-linecap="round"><path d="M2 7.5l3.5 3.5 6.5-7"/></svg></button><button class="btn-remove" onclick="removeRow(this)" title="Remove">&times;</button></td>';
+      row.classList.add('locked');
       row.querySelector('td:nth-child(1) input').value = p.name || '';
       row.querySelector('td:nth-child(2) select').value = p.type || 'String';
       row.querySelector('td:nth-child(3) select').value = p.required || 'Required';
       row.querySelector('td:nth-child(4) input').value = p.sample || '';
       tbody.appendChild(row);
-    });
+      });
+    }
   }
   ['subject', 'preheader', 'title', 'body'].forEach(function(id) {
     var el = document.getElementById(id);
@@ -1173,16 +1184,12 @@ function getFieldValue(id) {
     stepItems[2].classList.toggle('active', filledS3 > 0 && !s3Done);
 
     var intro = document.querySelector('#view-new-request .intro');
-    var formTop = document.querySelector('#view-new-request .container');
-    if (formTop && formTop.getBoundingClientRect().top < 200) {
-      card.classList.remove('hidden');
-      if (intro) {
-        var introTop = intro.getBoundingClientRect().top;
-        var minTop = 20;
-        card.style.top = Math.max(introTop, minTop) + 'px';
-      }
-    } else {
-      card.classList.add('hidden');
+    card.classList.remove('hidden');
+    if (intro) {
+      var introTop = intro.getBoundingClientRect().top;
+      var headerBottom = document.querySelector('.nav-bar') ? document.querySelector('.nav-bar').getBoundingClientRect().bottom : 0;
+      var minTop = Math.max(headerBottom + 16, 20);
+      card.style.top = Math.max(introTop, minTop) + 'px';
     }
   }
 
