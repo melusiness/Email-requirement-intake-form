@@ -389,27 +389,27 @@ var currentUser = null;
 
 function initAuth() {
   msalInstance.initialize().then(function() {
-    msalInstance.handleRedirectPromise().then(function(response) {
-      if (response) {
-        msalInstance.setActiveAccount(response.account);
+    // If this page is loaded inside an MSAL popup/redirect, let MSAL handle it and stop.
+    var isPopup = window.opener && window.opener !== window;
+    var isIframe = window.parent && window.parent !== window;
+    if (isPopup || isIframe) {
+      msalInstance.handleRedirectPromise();
+      return;
+    }
+
+    var account = msalInstance.getActiveAccount();
+    if (!account) {
+      var accounts = msalInstance.getAllAccounts();
+      if (accounts.length > 0) {
+        msalInstance.setActiveAccount(accounts[0]);
+        account = accounts[0];
       }
-      var account = msalInstance.getActiveAccount();
-      if (!account) {
-        var accounts = msalInstance.getAllAccounts();
-        if (accounts.length > 0) {
-          msalInstance.setActiveAccount(accounts[0]);
-          account = accounts[0];
-        }
-      }
-      if (account) {
-        onLoginSuccess(account);
-      } else {
-        showLoginScreen();
-      }
-    }).catch(function(err) {
-      console.error('Auth error:', err);
+    }
+    if (account) {
+      onLoginSuccess(account);
+    } else {
       showLoginScreen();
-    });
+    }
   });
 }
 
