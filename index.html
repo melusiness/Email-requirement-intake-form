@@ -7,7 +7,7 @@
 <title>Graph Connector Email Notification - Onboarding Request</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f7f8fa; color: #222; line-height: 1.7; }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef0f4; color: #222; line-height: 1.7; }
 
   .page-header { background: linear-gradient(135deg, #1a1c3a 0%, #2d3561 35%, #3b4d8a 65%, #4a6fa5 100%); color: #fff; padding: 52px 0 44px; border-bottom: none; }
   .page-header .inner { max-width: 920px; margin: 0 auto; padding: 0 48px; display: flex; align-items: center; gap: 20px; }
@@ -105,9 +105,15 @@
   .footer a:hover { color: #666; }
 
   /* Login screen */
-  .login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; padding: 60px 20px; }
-  .login-screen .login-card { background: #fff; border: 1px solid #e8e9ed; border-radius: 8px; padding: 56px 48px; max-width: 420px; width: 100%; box-shadow: 0 2px 12px rgba(0,0,0,.04); }
-  .login-screen .login-icon { font-size: 44px; margin-bottom: 20px; color: #ccc; }
+  .login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 60px 20px; background: url('Picture2.jpg') center/cover no-repeat fixed; position: fixed; inset: 0; z-index: 50; }
+  .login-screen::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,.4); }
+  .login-screen .login-card { background: rgba(255,255,255,.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: none; border-radius: 14px; padding: 48px 44px 44px; max-width: 440px; width: 100%; box-shadow: 0 12px 40px rgba(0,0,0,.2); position: relative; z-index: 1; }
+  .login-screen .login-brand { display: flex; align-items: center; gap: 14px; justify-content: center; margin-bottom: 28px; }
+  .login-screen .login-brand .brand-icon { width: 42px; height: 42px; background: linear-gradient(135deg, #1a1c3a, #4a6fa5); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; flex-shrink: 0; }
+  .login-screen .login-brand .brand-text { text-align: left; }
+  .login-screen .login-brand .brand-title { font-size: 15px; font-weight: 600; color: #222; line-height: 1.3; }
+  .login-screen .login-brand .brand-sub { font-size: 12px; color: #999; }
+  .login-screen .login-icon { font-size: 44px; margin-bottom: 20px; color: #3b4d8a; }
   .login-screen h2 { font-size: 20px; font-weight: 600; color: #222; margin-bottom: 8px; }
   .login-screen p { font-size: 14px; color: #999; margin-bottom: 32px; line-height: 1.7; }
   .btn-microsoft { display: inline-flex; align-items: center; gap: 10px; background: #fff; color: #333; border: 1px solid #ddd; padding: 13px 32px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all .15s; }
@@ -142,8 +148,37 @@
   .view { display: none; }
   .view.active { display: block; }
 
-  /* Progress ring card */
-  .progress-card { position: fixed; top: 100px; right: calc((100vw - 920px) / 2 - 220px); z-index: 100; width: 180px; background: #fff; border: 1px solid #e8e9ed; border-radius: 10px; padding: 24px 20px 20px; box-shadow: 0 2px 12px rgba(0,0,0,.05); transition: opacity .3s, transform .3s; }
+  /* Rich text toolbar */
+  .rich-toolbar { display: flex; align-items: center; gap: 2px; padding: 6px 8px; border: 1px solid #ddd; border-bottom: none; border-radius: 6px 6px 0 0; background: #fafbfc; }
+  .rich-toolbar + .rich-input { border-radius: 0 0 6px 6px; }
+  .rich-toolbar button { background: none; border: none; width: 32px; height: 32px; border-radius: 4px; cursor: pointer; font-size: 14px; color: #555; display: flex; align-items: center; justify-content: center; transition: all .12s; font-family: inherit; line-height: 1; }
+  .rich-toolbar button svg { pointer-events: none; }
+  .rich-toolbar button:hover { background: #eef0f4; color: #222; }
+  .rich-toolbar button.active { background: #e2e5ec; color: #222; }
+  .rich-toolbar .tb-sep { width: 1px; height: 20px; background: #ddd; margin: 0 4px; flex-shrink: 0; }
+  .rich-body blockquote { border-left: 3px solid #ddd; margin: 4px 0; padding: 2px 12px; color: #666; }
+  .rich-body a { color: #3b4d8a; text-decoration: underline; }
+  .rich-body ul, .rich-body ol { margin: 4px 0; padding-left: 24px; }
+  .rich-body li { margin: 2px 0; }
+
+  /* Link modal */
+  .link-modal-overlay { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.25); align-items: center; justify-content: center; }
+  .link-modal-overlay.open { display: flex; }
+  .link-modal { background: #fff; border-radius: 10px; padding: 28px 32px; width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,.12); }
+  .link-modal h3 { font-size: 16px; font-weight: 700; color: #222; margin-bottom: 20px; }
+  .link-modal label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+  .link-modal input { width: 100%; padding: 10px 14px; border: none; border-bottom: 2px solid #ddd; border-radius: 0; font-size: 14px; font-family: inherit; color: #222; background: #f7f8fa; outline: none; transition: border-color .2s; margin-bottom: 20px; }
+  .link-modal input:focus { border-bottom-color: #3b4d8a; }
+  .link-modal input::placeholder { color: #bbb; }
+  .link-modal .link-actions { display: flex; justify-content: flex-end; gap: 10px; }
+  .link-modal .link-actions button { padding: 10px 28px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all .15s; }
+  .link-modal .btn-cancel { background: #fff; color: #555; border: 1px solid #ddd; }
+  .link-modal .btn-cancel:hover { background: #fafafa; border-color: #ccc; }
+  .link-modal .btn-insert { background: #3b4d8a; color: #fff; border: 1px solid #3b4d8a; }
+  .link-modal .btn-insert:hover { background: #2d3d70; }
+  .link-modal .btn-insert:disabled { background: #ddd; border-color: #ddd; color: #aaa; cursor: default; }
+
+  .progress-card { position: fixed; top: 190px; right: calc((100vw - 920px) / 2 - 220px); z-index: 100; width: 180px; background: #fff; border: 1px solid #e8e9ed; border-radius: 10px; padding: 24px 20px 20px; box-shadow: 0 2px 12px rgba(0,0,0,.05); transition: opacity .3s, transform .3s; }
   .progress-card.hidden { opacity: 0; pointer-events: none; transform: translateY(10px); }
   .progress-card .ring-wrap { width: 96px; height: 96px; margin: 0 auto 8px; position: relative; }
   .progress-card .ring-wrap svg { width: 96px; height: 96px; transform: rotate(-90deg); }
@@ -177,12 +212,12 @@
 </head>
 <body>
 
-<div class="page-header">
+<div class="page-header" style="display:none;">
   <div class="inner">
     <div class="icon">&#9993;</div>
     <div>
       <h1>Email Notification Onboarding Request</h1>
-      <p>Graph Connector Email Notification Team</p>
+      <p>M365 Graph Connector Team</p>
     </div>
     <div class="user-info" id="user-info" style="display:none;">
       <span class="user-name" id="user-display"></span>
@@ -190,7 +225,6 @@
     </div>
   </div>
 </div>
-<div class="product-bar"><div class="inner">Microsoft 365 &middot; Graph Connectors</div></div>
 
 <div class="nav-bar" id="nav-bar" style="display:none;">
   <div class="inner">
@@ -214,7 +248,7 @@
     </div>
   </div>
   <ul class="step-list" id="step-list">
-    <li class="step-item" onclick="scrollToSection(0)"><span class="step-dot"></span>Request Info<span class="step-count" id="count-s1">0/5</span></li>
+    <li class="step-item" onclick="scrollToSection(0)"><span class="step-dot"></span>Request Info<span class="step-count" id="count-s1">0/6</span></li>
     <li class="step-item" onclick="scrollToSection(1)"><span class="step-dot"></span>Parameters<span class="step-count">—</span></li>
     <li class="step-item" onclick="scrollToSection(2)"><span class="step-dot"></span>Email Content<span class="step-count" id="count-s3">0/4</span></li>
   </ul>
@@ -257,6 +291,11 @@
         <label>Primary Call to Action <span class="required">*</span></label>
         <div class="hint">What action do you want recipients to take after reading this email?</div>
         <textarea id="cta" rows="3" placeholder="e.g. Sign in to the admin portal, review failed connections, and take corrective action..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Frequency Cap <span class="required">*</span></label>
+        <div class="hint">How often can this email be sent to the same recipient? Define the cool-down period to avoid notification fatigue — e.g. once per 24 hours, max 3 per week, or no more than 1 per incident.</div>
+        <textarea id="frequencyCap" rows="2" placeholder="e.g. No more than 1 email per connection per 24 hours. If the same connection fails multiple times within the window, only the first occurrence triggers a notification."></textarea>
       </div>
     </div>
   </div>
@@ -367,7 +406,20 @@
             <div class="param-dropdown" id="dropdown-body"></div>
           </div>
         </div>
-        <div class="rich-input rich-body" contenteditable="true" id="body" data-placeholder="Write your email body here. Use [ParameterName] syntax for dynamic parameters..." oninput="highlightParams(this);updateWordCountRich('body', 300)"></div>
+        <div class="rich-toolbar" id="body-toolbar">
+          <button type="button" title="Bold" onclick="execFmt('bold')" data-cmd="bold"><b>B</b></button>
+          <button type="button" title="Italic" onclick="execFmt('italic')" data-cmd="italic"><i>I</i></button>
+          <button type="button" title="Underline" onclick="execFmt('underline')" data-cmd="underline"><u>U</u></button>
+          <button type="button" title="Strikethrough" onclick="execFmt('strikethrough')" data-cmd="strikethrough"><s>S</s></button>
+          <div class="tb-sep"></div>
+          <button type="button" title="Bullet List" onclick="execFmt('insertUnorderedList')" data-cmd="insertUnorderedList"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="2.5" cy="4" r="1.5"/><circle cx="2.5" cy="8" r="1.5"/><circle cx="2.5" cy="12" r="1.5"/><rect x="6" y="3" width="9" height="2" rx="1"/><rect x="6" y="7" width="9" height="2" rx="1"/><rect x="6" y="11" width="9" height="2" rx="1"/></svg></button>
+          <button type="button" title="Numbered List" onclick="execFmt('insertOrderedList')" data-cmd="insertOrderedList"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><text x="0" y="5.5" font-size="5.5" font-weight="600" font-family="Segoe UI,sans-serif">1.</text><text x="0" y="9.5" font-size="5.5" font-weight="600" font-family="Segoe UI,sans-serif">2.</text><text x="0" y="13.5" font-size="5.5" font-weight="600" font-family="Segoe UI,sans-serif">3.</text><rect x="6" y="3" width="9" height="2" rx="1"/><rect x="6" y="7" width="9" height="2" rx="1"/><rect x="6" y="11" width="9" height="2" rx="1"/></svg></button>
+          <div class="tb-sep"></div>
+          <button type="button" title="Insert Link" onclick="insertLink()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M7 9l2-2"/><rect x="8.5" y="2.5" width="5" height="3" rx="1.5" transform="rotate(45 11 4)"/><rect x="2.5" y="8.5" width="5" height="3" rx="1.5" transform="rotate(45 5 10)"/></svg></button>
+          <div class="tb-sep"></div>
+          <button type="button" title="Clear Formatting" onclick="execFmt('removeFormat')"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3h12v1.5H2zM4 7h5l-1 2H4zM3 13l9-9 1 1-9 9z"/></svg></button>
+        </div>
+        <div class="rich-input rich-body" contenteditable="true" id="body" data-placeholder="Write your email body here. Use [ParameterName] syntax for dynamic parameters..." oninput="updateWordCountRich('body', 300);updateToolbarState()"></div>
         <div class="char-count" id="body-count">0 / 300 words</div>
       </div>
     </div>
@@ -411,6 +463,13 @@
 <div class="view" id="view-login">
   <div class="login-screen">
     <div class="login-card">
+      <div class="login-brand">
+        <div class="brand-icon">&#9993;</div>
+        <div class="brand-text">
+          <div class="brand-title">Email Notification Onboarding</div>
+          <div class="brand-sub">M365 Graph Connector Team</div>
+        </div>
+      </div>
       <div class="login-icon">&#9993;</div>
       <h2>Email Notification Intake</h2>
       <p>Sign in with your Microsoft corporate account to submit or view email notification requirements.</p>
@@ -418,6 +477,20 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21"><rect x="0" y="0" width="10" height="10" fill="#f25022"/><rect x="11" y="0" width="10" height="10" fill="#7fba00"/><rect x="0" y="11" width="10" height="10" fill="#00a4ef"/><rect x="11" y="11" width="10" height="10" fill="#ffb900"/></svg>
         Sign in with Microsoft
       </button>
+    </div>
+  </div>
+</div>
+
+<div class="link-modal-overlay" id="link-modal">
+  <div class="link-modal">
+    <h3>Insert link</h3>
+    <label>Text to display</label>
+    <input type="text" id="link-text" placeholder="Enter display text">
+    <label>Address</label>
+    <input type="text" id="link-url" placeholder="Link to an existing file or web page" oninput="document.getElementById('link-insert-btn').disabled = !this.value.trim()">
+    <div class="link-actions">
+      <button class="btn-cancel" onclick="closeLinkModal()">Cancel</button>
+      <button class="btn-insert" id="link-insert-btn" disabled onclick="confirmInsertLink()">Insert</button>
     </div>
   </div>
 </div>
@@ -470,10 +543,7 @@ function signIn() {
 }
 
 function signOut() {
-  msalInstance.logoutPopup().then(function() {
-    currentUser = null;
-    showLoginScreen();
-  });
+  msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.origin + window.location.pathname });
 }
 
 function onLoginSuccess(account) {
@@ -482,6 +552,8 @@ function onLoginSuccess(account) {
   document.getElementById('user-info').style.display = 'flex';
   document.getElementById('nav-bar').style.display = '';
   document.getElementById('view-login').style.display = 'none';
+  document.querySelector('.page-header').style.display = '';
+  document.querySelector('.footer').style.display = '';
   showView('new-request');
   loadDraft();
 }
@@ -490,6 +562,8 @@ function showLoginScreen() {
   currentUser = null;
   document.getElementById('user-info').style.display = 'none';
   document.getElementById('nav-bar').style.display = 'none';
+  document.querySelector('.page-header').style.display = 'none';
+  document.querySelector('.footer').style.display = 'none';
   document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
   document.getElementById('view-login').style.display = 'block';
   document.getElementById('view-login').classList.add('active');
@@ -588,11 +662,12 @@ function viewSubmission(id) {
       html += '<h3 style="margin:16px 0 6px;font-size:14px;color:#3b4d8a;">Audience</h3><p style="font-size:14px;color:#555;">' + escapeHtml(item.audience) + '</p>';
       html += '<h3 style="margin:16px 0 6px;font-size:14px;color:#3b4d8a;">Trigger Condition</h3><p style="font-size:14px;color:#555;">' + escapeHtml(item.trigger) + '</p>';
       html += '<h3 style="margin:16px 0 6px;font-size:14px;color:#3b4d8a;">Primary Call to Action</h3><p style="font-size:14px;color:#555;">' + escapeHtml(item.cta) + '</p>';
+      html += '<h3 style="margin:16px 0 6px;font-size:14px;color:#3b4d8a;">Frequency Cap</h3><p style="font-size:14px;color:#555;">' + escapeHtml(item.frequencyCap || '') + '</p>';
       if (paramsHtml) { html += '<h3 style="margin:16px 0 6px;font-size:14px;color:#3b4d8a;">Parameters</h3>' + paramsHtml; }
       html += '<h3 style="margin:16px 0 6px;font-size:14px;color:#3b4d8a;">Subject</h3><p style="font-size:14px;color:#555;">' + escapeHtml(item.subject) + '</p>';
       html += '<h3 style="margin:16px 0 6px;font-size:14px;color:#3b4d8a;">Preheader</h3><p style="font-size:14px;color:#555;">' + escapeHtml(item.preheader) + '</p>';
       html += '<h3 style="margin:16px 0 6px;font-size:14px;color:#3b4d8a;">Title</h3><p style="font-size:14px;color:#555;">' + escapeHtml(item.title) + '</p>';
-      html += '<h3 style="margin:16px 0 6px;font-size:14px;color:#3b4d8a;">Body</h3><p style="font-size:14px;white-space:pre-wrap;color:#555;">' + escapeHtml(item.body) + '</p>';
+      html += '<h3 style="margin:16px 0 6px;font-size:14px;color:#3b4d8a;">Body</h3><div style="font-size:14px;line-height:1.8;color:#555;">' + (item.body || '') + '</div>';
       html += '</div></div>';
       html += '<div class="actions" style="margin-top:16px;">';
       html += '<button class="btn-secondary" onclick="loadSubmissions()">Back to List</button>';
@@ -619,6 +694,7 @@ function editSubmission(id) {
       document.getElementById('audience').value = item.audience || '';
       document.getElementById('trigger').value = item.trigger || '';
       document.getElementById('cta').value = item.cta || '';
+      document.getElementById('frequencyCap').value = item.frequencyCap || '';
       document.getElementById('subject').textContent = item.subject || '';
       document.getElementById('preheader').textContent = item.preheader || '';
       document.getElementById('title').textContent = item.title || '';
@@ -796,6 +872,7 @@ function saveDraft() {
     audience: document.getElementById('audience').value,
     trigger: document.getElementById('trigger').value,
     cta: document.getElementById('cta').value,
+    frequencyCap: document.getElementById('frequencyCap').value,
     subject: document.getElementById('subject').innerHTML,
     preheader: document.getElementById('preheader').innerHTML,
     title: document.getElementById('title').innerHTML,
@@ -825,7 +902,7 @@ function saveDraft() {
     subject: getTextContent('subject'),
     preheader: getTextContent('preheader'),
     title: getTextContent('title'),
-    body: getTextContent('body'),
+    body: document.getElementById('body').innerHTML.trim(),
     submitter: currentUser ? currentUser.email : 'anonymous',
     status: 'draft'
   };
@@ -861,6 +938,7 @@ function loadDraft() {
   if (data.audience) document.getElementById('audience').value = data.audience;
   if (data.trigger) document.getElementById('trigger').value = data.trigger;
   if (data.cta) document.getElementById('cta').value = data.cta;
+  if (data.frequencyCap) document.getElementById('frequencyCap').value = data.frequencyCap;
   if (data.subject) document.getElementById('subject').innerHTML = data.subject;
   if (data.preheader) document.getElementById('preheader').innerHTML = data.preheader;
   if (data.title) document.getElementById('title').innerHTML = data.title;
@@ -890,7 +968,7 @@ function clearDraft() {
 
 // === Form: Submit ===
 function submitForm() {
-  var required = ['templateName', 'purpose', 'audience', 'trigger', 'cta', 'subject', 'preheader', 'title', 'body'];
+  var required = ['templateName', 'purpose', 'audience', 'trigger', 'cta', 'frequencyCap', 'subject', 'preheader', 'title', 'body'];
   var richFields = ['subject', 'preheader', 'title', 'body'];
   for (var i = 0; i < required.length; i++) {
     var id = required[i];
@@ -924,11 +1002,12 @@ function submitForm() {
     audience: document.getElementById('audience').value.trim(),
     trigger: document.getElementById('trigger').value.trim(),
     cta: document.getElementById('cta').value.trim(),
+    frequencyCap: document.getElementById('frequencyCap').value.trim(),
     parameters: params,
     subject: getTextContent('subject'),
     preheader: getTextContent('preheader'),
     title: getTextContent('title'),
-    body: getTextContent('body'),
+    body: document.getElementById('body').innerHTML.trim(),
     submitter: currentUser ? currentUser.email : 'anonymous',
     status: 'submitted'
   };
@@ -964,10 +1043,96 @@ function submitForm() {
     });
 }
 
+// === Rich text toolbar ===
+document.getElementById('body-toolbar').addEventListener('mousedown', function(e) {
+  e.preventDefault();
+});
+
+function execFmt(cmd, val) {
+  document.execCommand(cmd, false, val || null);
+  updateToolbarState();
+}
+
+var savedLinkRange = null;
+
+function insertLink() {
+  var sel = window.getSelection();
+  savedLinkRange = sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
+  var selectedText = savedLinkRange ? savedLinkRange.toString() : '';
+  document.getElementById('link-text').value = selectedText;
+  document.getElementById('link-url').value = '';
+  document.getElementById('link-insert-btn').disabled = true;
+  document.getElementById('link-modal').classList.add('open');
+  document.getElementById(selectedText ? 'link-url' : 'link-text').focus();
+}
+
+function closeLinkModal() {
+  document.getElementById('link-modal').classList.remove('open');
+  document.getElementById('body').focus();
+  if (savedLinkRange) {
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedLinkRange);
+  }
+}
+
+function confirmInsertLink() {
+  var text = document.getElementById('link-text').value.trim();
+  var url = document.getElementById('link-url').value.trim();
+  if (!url) return;
+  if (!url.match(/^https?:\/\//)) url = 'https://' + url;
+  document.getElementById('link-modal').classList.remove('open');
+
+  var body = document.getElementById('body');
+  body.focus();
+
+  var a = document.createElement('a');
+  a.href = url;
+  a.textContent = text || url;
+  a.target = '_blank';
+
+  if (savedLinkRange) {
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedLinkRange);
+    savedLinkRange.deleteContents();
+    savedLinkRange.insertNode(a);
+    var newRange = document.createRange();
+    newRange.setStartAfter(a);
+    newRange.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+  } else {
+    body.appendChild(a);
+  }
+  savedLinkRange = null;
+  body.dispatchEvent(new Event('input'));
+}
+
+document.getElementById('link-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeLinkModal();
+});
+
+document.getElementById('link-url').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && this.value.trim()) { e.preventDefault(); confirmInsertLink(); }
+});
+
+function updateToolbarState() {
+  var btns = document.querySelectorAll('#body-toolbar button[data-cmd]');
+  btns.forEach(function(btn) {
+    var cmd = btn.getAttribute('data-cmd');
+    try { btn.classList.toggle('active', document.queryCommandState(cmd)); } catch(e) {}
+  });
+}
+
+document.addEventListener('selectionchange', function() {
+  if (document.activeElement && document.activeElement.id === 'body') updateToolbarState();
+});
+
 // === Progress ring ===
 var RING_CIRCUMFERENCE = 2 * Math.PI * 40;
 var REQUIRED_FIELDS = {
-  s1: ['templateName', 'purpose', 'audience', 'trigger', 'cta'],
+  s1: ['templateName', 'purpose', 'audience', 'trigger', 'cta', 'frequencyCap'],
   s3: ['subject', 'preheader', 'title', 'body']
 };
 var RICH_FIELDS = ['subject', 'preheader', 'title', 'body'];
@@ -1017,9 +1182,15 @@ function getFieldValue(id) {
     stepItems[2].classList.toggle('completed', s3Done);
     stepItems[2].classList.toggle('active', filledS3 > 0 && !s3Done);
 
+    var intro = document.querySelector('#view-new-request .intro');
     var formTop = document.querySelector('#view-new-request .container');
     if (formTop && formTop.getBoundingClientRect().top < 200) {
       card.classList.remove('hidden');
+      if (intro) {
+        var introTop = intro.getBoundingClientRect().top;
+        var minTop = 20;
+        card.style.top = Math.max(introTop, minTop) + 'px';
+      }
     } else {
       card.classList.add('hidden');
     }
