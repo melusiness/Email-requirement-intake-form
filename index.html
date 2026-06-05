@@ -389,14 +389,11 @@ var currentUser = null;
 
 function initAuth() {
   msalInstance.initialize().then(function() {
-    // If this page is loaded inside an MSAL popup/redirect, let MSAL handle it and stop.
-    var isPopup = window.opener && window.opener !== window;
-    var isIframe = window.parent && window.parent !== window;
-    if (isPopup || isIframe) {
-      msalInstance.handleRedirectPromise();
-      return;
+    return msalInstance.handleRedirectPromise();
+  }).then(function(response) {
+    if (response) {
+      msalInstance.setActiveAccount(response.account);
     }
-
     var account = msalInstance.getActiveAccount();
     if (!account) {
       var accounts = msalInstance.getAllAccounts();
@@ -410,18 +407,14 @@ function initAuth() {
     } else {
       showLoginScreen();
     }
+  }).catch(function(err) {
+    console.error('Auth error:', err);
+    showLoginScreen();
   });
 }
 
 function signIn() {
-  msalInstance.loginPopup({ scopes: ['User.Read'] })
-    .then(function(response) {
-      msalInstance.setActiveAccount(response.account);
-      onLoginSuccess(response.account);
-    })
-    .catch(function(err) {
-      console.error('Login error:', err);
-    });
+  msalInstance.loginRedirect({ scopes: ['User.Read'] });
 }
 
 function signOut() {
@@ -449,7 +442,14 @@ function showLoginScreen() {
   document.getElementById('view-login').classList.add('active');
 }
 
-window.addEventListener('DOMContentLoaded', initAuth);
+// DEV MODE: skip SSO on localhost
+window.addEventListener('DOMContentLoaded', function() {
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    onLoginSuccess({ name: 'Dev User', username: 'devuser@microsoft.com' });
+  } else {
+    initAuth();
+  }
+});
 
 var REPO = 'ms-anggao/Email-requirement-intake-form';
 var API_BASE = 'https://func-email-intake.azurewebsites.net/api';
