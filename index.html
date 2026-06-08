@@ -540,6 +540,7 @@ function onLoginSuccess(account) {
   document.querySelector('.footer').style.display = '';
   showView('new-request');
   loadDraft();
+  if (window.__updateProgressRing) setTimeout(window.__updateProgressRing, 0);
 }
 
 function showLoginScreen() {
@@ -1202,6 +1203,8 @@ function getFieldValue(id) {
   });
 
   window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  window.__updateProgressRing = update;
   update();
 })();
 </script>
