@@ -538,7 +538,8 @@ function onLoginSuccess(account) {
   document.getElementById('view-login').style.display = 'none';
   document.querySelector('.page-header').style.display = '';
   document.querySelector('.footer').style.display = '';
-  showView('new-request');
+  var lastView = localStorage.getItem('last-view') || 'new-request';
+  showView(lastView);
   loadDraft();
   if (window.__updateProgressRing) setTimeout(window.__updateProgressRing, 0);
 }
@@ -573,6 +574,7 @@ function showView(view) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('view-' + view).classList.add('active');
   document.querySelector('[onclick="showView(\'' + view + '\')"]').classList.add('active');
+  localStorage.setItem('last-view', view);
   if (view === 'my-submissions') loadSubmissions();
 }
 
