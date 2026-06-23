@@ -58,6 +58,25 @@
   .char-count { font-size: 12px; color: #bbb; text-align: right; margin-top: 6px; }
   .char-count.over { color: #c0392b; font-weight: 600; }
 
+  /* AI Draft Assistant */
+  .ai-assist-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; background: linear-gradient(135deg, #f4f1fb, #eef1f8); border: 1px solid #e2def0; border-radius: 8px; padding: 14px 18px; margin-bottom: 28px; flex-wrap: wrap; }
+  .ai-assist-text { display: flex; flex-direction: column; gap: 2px; min-width: 220px; }
+  .ai-assist-text strong { font-size: 13px; color: #4a3f8a; letter-spacing: .1px; display: flex; align-items: center; gap: 6px; }
+  .ai-assist-text .ai-hint { font-size: 12px; color: #8a8a99; }
+  .ai-assist-text .ai-hint.msg-ok { color: #2e7d4f; font-weight: 600; }
+  .ai-assist-text .ai-hint.msg-err { color: #c0392b; font-weight: 600; }
+  .btn-ai-generate { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #6a4fd0, #3b4d8a); color: #fff; border: none; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: filter .15s, transform .1s; box-shadow: 0 2px 8px rgba(74,63,138,.25); white-space: nowrap; }
+  .btn-ai-generate:hover { filter: brightness(1.08); }
+  .btn-ai-generate:active { transform: translateY(1px); }
+  .btn-ai-generate:disabled { opacity: .7; cursor: default; }
+  .btn-ai-generate svg { flex-shrink: 0; }
+  .ai-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; display: inline-block; animation: ai-spin .7s linear infinite; }
+  @keyframes ai-spin { to { transform: rotate(360deg); } }
+
+  /* DEMO ONLY \u2014 one-click sample fill button (remove before handoff) */
+  .btn-demo-fill { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.4); padding: 6px 14px; border-radius: 5px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background .15s; }
+  .btn-demo-fill:hover { background: rgba(255,255,255,.28); }
+
   /* Parameters table */
   .params-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 16px; border: 1px solid #e8e9ed; border-radius: 6px; overflow: hidden; }
   .params-table th { background: #f4f5f8; font-size: 12px; font-weight: 600; text-align: left; padding: 12px 14px; border-bottom: 1px solid #e8e9ed; color: #888; letter-spacing: .2px; text-transform: uppercase; }
@@ -266,6 +285,11 @@
     <div class="section-header">
       <div class="num">1</div>
       <h2>Request Information</h2>
+      <!-- DEMO ONLY: one-click sample fill for live demos. Remove this button before handoff. -->
+      <button type="button" class="btn-demo-fill" id="demo-fill-btn" onclick="fillDemoData()" title="Fill Section 1 with sample data for demos">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9z"/></svg>
+        Fill Demo Data
+      </button>
     </div>
     <div class="section-body">
       <div class="form-group">
@@ -308,6 +332,21 @@
       <h2>Template Parameters</h2>
     </div>
     <div class="section-body">
+
+      <div class="ai-assist-bar">
+        <div class="ai-assist-text">
+          <strong>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="#6a4fd0"><path d="M12 2l1.7 4.5L18 8l-4.3 1.5L12 14l-1.7-4.5L6 8l4.3-1.5L12 2zm6.5 9l.9 2.4L22 14l-2.6.9L18.5 18l-.9-2.6L15 14l2.6-.6L18.5 11zM6 12l.7 1.9L8.5 14.5l-1.8.6L6 17l-.7-1.9L3.5 14.5l1.8-.6L6 12z"/></svg>
+            AI Draft Assistant
+          </strong>
+          <span class="ai-hint" id="ai-assist-hint">Finish Section 1 above, then auto-generate the parameters below and the email content in Section 3. Everything stays editable.</span>
+        </div>
+        <button type="button" class="btn-ai-generate" id="ai-generate-btn" onclick="aiGenerateDraft()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 4.5L18 8l-4.3 1.5L12 14l-1.7-4.5L6 8l4.3-1.5L12 2z"/></svg>
+          Generate with AI
+        </button>
+      </div>
+
       <p style="font-size:14px;color:#666;margin-bottom:16px;line-height:1.8;">Parameters are dynamic placeholders that get replaced with real values when the email is sent — for example, a connection name, tenant ID, or timestamp. Define each parameter your email template needs so our system can inject the correct data at delivery time.</p>
       <div class="note-box">
         <strong>Note:</strong> If passing a date/time parameter, the type is still <code>String</code>. Provide the raw payload value and what you want displayed. All date/time parameters are localized by default. Specify if you need the exact payload value displayed without formatting.
@@ -862,6 +901,275 @@ function lockRow(btn) {
 }
 
 
+// === AI Draft Assistant (local generator) ===
+// Builds a first-draft email from the Purpose / Audience / Trigger / CTA fields
+// entirely in the browser — no API key, works offline.
+//
+// To upgrade to real AI later, DO NOT call a model API directly from this file
+// (the key would be exposed to anyone who opens the page). Instead add a server
+// endpoint in api-src (e.g. POST /api/ai/draft) that keeps the key server-side,
+// then replace the setTimeout(...) block below with a fetch to API_BASE + '/ai/draft'.
+function aiGenerateDraft() {
+  var purpose = document.getElementById('purpose').value.trim();
+  var audience = document.getElementById('audience').value.trim();
+  var trigger = document.getElementById('trigger').value.trim();
+  var cta = document.getElementById('cta').value.trim();
+
+  // Section 1 fields are all required \u2014 the AI uses every one to write the draft.
+  var requiredS1 = [
+    ['templateName', 'Email Requirement Name'],
+    ['purpose', 'Purpose'], ['audience', 'Audience'],
+    ['trigger', 'Trigger Condition'], ['cta', 'Primary Call to Action'],
+    ['frequencyCap', 'Frequency Cap']
+  ];
+  for (var r = 0; r < requiredS1.length; r++) {
+    if (!document.getElementById(requiredS1[r][0]).value.trim()) {
+      aiAssistMsg('Please fill in "' + requiredS1[r][1] + '" (Section 1) first \u2014 the AI uses every field to write the draft.', true);
+      document.getElementById(requiredS1[r][0]).focus();
+      return;
+    }
+  }
+
+  var btn = document.getElementById('ai-generate-btn');
+  var original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="ai-spinner"></span> Generating\u2026';
+
+  // Simulated async — replace this block with a backend call when AI is wired up.
+  setTimeout(function() {
+    // Section 2: suggest template parameters from the Section 1 inputs.
+    var added = aiFillParamsTable(aiGenerateParams(purpose, audience, trigger, cta));
+
+    // Section 3: build the email draft, reusing whatever parameters now exist.
+    var params = getDefinedParams();
+    var draft = aiComposeEmailDraft(purpose, audience, trigger, cta, params);
+    aiSetRich('subject', draft.subject, 70);
+    aiSetRich('preheader', draft.preheader, 100);
+    aiSetRich('title', draft.title, 80, 20);
+    aiSetBody('body', draft.body);
+
+    btn.disabled = false;
+    btn.innerHTML = original;
+    aiAssistMsg(added > 0
+      ? 'Suggested ' + added + ' parameter' + (added > 1 ? 's' : '') + ' and a draft — review, edit, or delete anything below.'
+      : 'Draft generated — please review and edit below.', false);
+    document.getElementById('paramsTable').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 650);
+}
+
+function aiAssistMsg(text, isError) {
+  var el = document.getElementById('ai-assist-hint');
+  if (!el) return;
+  el.textContent = text;
+  el.className = 'ai-hint ' + (isError ? 'msg-err' : 'msg-ok');
+}
+
+function aiComposeEmailDraft(purpose, audience, trigger, cta, params) {
+  var p = aiClean(purpose);
+  var trig = aiClean(trigger);
+  var action = aiClean(cta);
+  var tone = aiTone(p + ' ' + trig + ' ' + aiClean(audience));
+
+  // Reference the real parameters so the copy stays dynamic at send time.
+  var conn = aiTok(params, 'ConnectionName', 'connector');            // [ConnectionName] -> e.g. "Google Drive"
+  var tenant = aiHasParam(params, 'TenantId') ? ' (tenant [TenantId])' : '';
+  var asOf = aiHasParam(params, 'Timestamp') ? ' as of [Timestamp]' : '';
+  var statusFailed = aiTok(params, 'ConnectionStatus', 'not connected');
+  var statusOk = aiTok(params, 'ConnectionStatus', 'connected');
+
+  var subject, preheader, title, ctaLabel, paras = [];
+
+  if (tone === 'urgent') {
+    subject   = 'Action required: Your ' + conn + ' connection needs attention';
+    preheader = 'Your ' + conn + ' connection stopped syncing and may affect Copilot results.';
+    title     = 'Your ' + conn + ' connection needs attention';
+    paras.push('Your ' + conn + ' connection in Microsoft 365 Copilot' + tenant + ' is currently ' + statusFailed + asOf + '.');
+    paras.push('While it is down, content from this source is not being indexed, so it will not appear in Microsoft 365 Copilot or Microsoft Search results for your users.');
+    if (aiHasParam(params, 'FailureReason')) paras.push('Reason reported: [FailureReason].');
+    paras.push('To restore results, ' + aiLower(aiFirstSentence(action)) + '.');
+  } else if (tone === 'success') {
+    subject   = 'Your ' + conn + ' connection is reconnected';
+    preheader = 'Your ' + conn + ' connection is back online and indexing content again.';
+    title     = 'Your ' + conn + ' connection is reconnected';
+    paras.push('Good news \u2014 your ' + conn + ' connection in Microsoft 365 Copilot' + tenant + ' is now ' + statusOk + asOf + '.');
+    paras.push('Content from this source will now appear in Microsoft 365 Copilot and Microsoft Search results for your users.');
+    paras.push('No action is needed. To review the connection, ' + aiLower(aiFirstSentence(action)) + '.');
+  } else if (tone === 'reminder') {
+    subject   = 'Reminder: Your ' + conn + ' connection';
+    preheader = 'A quick reminder about your ' + conn + ' connection in Microsoft 365 Copilot.';
+    title     = 'Reminder: Your ' + conn + ' connection';
+    paras.push('This is a reminder about your ' + conn + ' connection in Microsoft 365 Copilot' + tenant + '.');
+    paras.push(aiCap(aiFirstSentence(p)) + '.');
+    paras.push('To stay on track, ' + aiLower(aiFirstSentence(action)) + '.');
+  } else {
+    subject   = 'Update on your ' + conn + ' connection';
+    preheader = 'An update about your ' + conn + ' connection in Microsoft 365 Copilot.';
+    title     = 'Update on your ' + conn + ' connection';
+    paras.push('We have an update about your ' + conn + ' connection in Microsoft 365 Copilot' + tenant + '.');
+    paras.push(aiCap(aiFirstSentence(p)) + '.');
+    paras.push('To learn more, ' + aiLower(aiFirstSentence(action)) + '.');
+  }
+
+  ctaLabel  = aiCtaLabel(action, tone);
+  subject   = aiTruncate(subject, 70);
+  preheader = aiTruncate(preheader, 100);
+  title     = aiMinTitle(aiTruncate(title, 80), tone);
+
+  var bodyHtml = paras.map(function(l) { return '<p>' + aiWrapParams(escapeHtml(l)) + '</p>'; }).join('');
+  bodyHtml += '<p><strong>' + escapeHtml(ctaLabel) + '</strong></p>';
+
+  return { subject: subject, preheader: preheader, title: title, body: bodyHtml };
+}
+
+function aiSetRich(id, text, max, min) {
+  var el = document.getElementById(id);
+  el.innerHTML = aiWrapParams(escapeHtml(text));
+  updateCountRich(id, max, min);
+}
+
+function aiSetBody(id, html) {
+  var el = document.getElementById(id);
+  el.innerHTML = html;
+  updateWordCountRich(id, 300);
+  if (typeof updateToolbarState === 'function') updateToolbarState();
+}
+
+function aiClean(t) {
+  if (!t) return '';
+  return t.replace(/^\s*(e\.g\.?|for example|example)\s*[:,-]?\s*/i, '').trim();
+}
+
+function aiFirstSentence(t) {
+  t = aiClean(t);
+  var m = t.match(/^[^.!?\n]+[.!?]?/);
+  var s = m ? m[0] : t;
+  return s.trim().replace(/[.!?]+$/, '');
+}
+
+function aiCap(t) { return t ? t.charAt(0).toUpperCase() + t.slice(1) : t; }
+function aiLower(t) { return t ? t.charAt(0).toLowerCase() + t.slice(1) : t; }
+
+function aiTruncate(t, n) {
+  t = (t || '').trim();
+  if (t.length <= n) return t;
+  var cut = t.slice(0, n);
+  var sp = cut.lastIndexOf(' ');
+  if (sp > n * 0.6) cut = cut.slice(0, sp);
+  return cut.replace(/[\s,;:.\-]+$/, '') + '\u2026';
+}
+
+function aiHasParam(params, name) { return params.indexOf('[' + name + ']') >= 0; }
+function aiTok(params, name, fallback) { return aiHasParam(params, name) ? '[' + name + ']' : fallback; }
+
+function aiTone(text) {
+  var t = (text || '').toLowerCase();
+  if (/\b(fail\w*|error\w*|issue\w*|down|expir\w*|problem\w*|alert\w*|critical|block\w*|disconnect\w*|unable|denied|warning\w*|broken|invalid|missing|fault\w*)\b/.test(t)) return 'urgent';
+  if (/\b(success\w*|complete\w*|welcome|ready|approv\w*|publish\w*|live|enabled|activat\w*|created|done)\b/.test(t)) return 'success';
+  if (/\b(remind\w*|upcoming|scheduled|due|renew\w*)\b/.test(t)) return 'reminder';
+  return 'info';
+}
+
+function aiWrapParams(escaped) {
+  return escaped.replace(/\[([^\]]+)\]/g, '<span class="param-tag">[$1]</span>');
+}
+
+function aiMinTitle(title, tone) {
+  if (title.replace(/\u2026$/, '').length >= 20) return title;
+  var suffix = tone === 'urgent' ? ' \u2014 action required'
+             : tone === 'success' ? ' \u2014 you\u2019re all set'
+             : ' \u2014 details inside';
+  return aiTruncate(title + suffix, 80);
+}
+
+function aiCtaLabel(action, tone) {
+  var a = (action || '').toLowerCase();
+  // Prefer a clean, recognizable button label based on the action verbs.
+  if (/reconnect|re-connect/.test(a)) return 'Reconnect now';
+  if (/review/.test(a)) return 'Review connection';
+  if (/renew/.test(a)) return 'Renew now';
+  if (/verify|confirm/.test(a)) return 'Verify now';
+  if (/update|refresh/.test(a)) return 'Update now';
+  if (/sign[ -]?in|log[ -]?in|admin center|portal|console|dashboard/.test(a)) return 'Open admin center';
+  // Fall back to the first short clause only if it is naturally button-sized.
+  if (action) {
+    var clause = aiFirstSentence(action).split(',')[0].trim().replace(/[.,;:]+$/, '');
+    if (clause.length >= 3 && clause.length <= 24) return aiCap(clause);
+  }
+  return tone === 'urgent' ? 'Review now' : (tone === 'success' ? 'Get started' : 'Learn more');
+}
+
+// Suggest Section 2 template parameters from the Section 1 inputs.
+// Core identifiers follow the form's own example: connection name, tenant ID, timestamp.
+function aiGenerateParams(purpose, audience, trigger, cta) {
+  var text = purpose + ' ' + audience + ' ' + trigger + ' ' + cta;
+  var tone = aiTone(text);
+
+  // Generic sample that works for any connector. ConnectionName's sample uses a
+  // real connector name (e.g. Google Drive) just to show what a real value looks like.
+  var params = [
+    { name: 'ConnectionName', type: 'String', required: 'Required', sample: 'Google Drive' },
+    { name: 'TenantId', type: 'String', required: 'Required', sample: 'a1b2c3d4-5678-49ab-cdef-0123456789ab' },
+    { name: 'Timestamp', type: 'String', required: 'Required', sample: 'June 23, 2026 2:30 PM' }
+  ];
+
+  if (tone === 'urgent') {
+    params.push({ name: 'ConnectionStatus', type: 'String', required: 'Required', sample: 'Failed' });
+    params.push({ name: 'FailureReason', type: 'String', required: 'Required', sample: 'Authentication token expired' });
+  } else if (tone === 'success') {
+    params.push({ name: 'ConnectionStatus', type: 'String', required: 'Required', sample: 'Connected' });
+    params.push({ name: 'ItemsIndexed', type: 'Integer', required: 'Optional', sample: '4820' });
+  } else if (tone === 'reminder') {
+    params.push({ name: 'DueDate', type: 'String', required: 'Required', sample: 'June 30, 2026' });
+  } else {
+    params.push({ name: 'ConnectionStatus', type: 'String', required: 'Optional', sample: 'Updated' });
+  }
+
+  return params;
+}
+
+// Fill the parameters table with suggestions, skipping any the user already added
+// and leaving every generated row editable/removable. Returns how many were added.
+function aiFillParamsTable(genParams) {
+  var tbody = document.querySelector('#paramsTable tbody');
+  var existingNames = {};
+  var blankRows = [];
+  Array.prototype.forEach.call(tbody.querySelectorAll('tr'), function(row) {
+    var input = row.querySelector('td:first-child input');
+    var val = input ? input.value.trim() : '';
+    if (val) existingNames[val.toLowerCase().replace(/^\[|\]$/g, '')] = true;
+    else blankRows.push(row);
+  });
+
+  var rowHtml = '<td><input type="text" placeholder="[ParameterName]"></td>' +
+    '<td><select><option>String</option><option>Integer</option><option>Boolean</option></select></td>' +
+    '<td><select><option>Required</option><option>Optional</option></select></td>' +
+    '<td><input type="text" placeholder=\'"example value"\'></td>' +
+    '<td style="text-align:center;white-space:nowrap;"><button class="btn-param-add" onclick="lockRow(this)">Add</button><button class="btn-remove" onclick="removeRow(this)" title="Remove">&times;</button></td>';
+
+  var added = 0;
+  genParams.forEach(function(p) {
+    if (existingNames[p.name.toLowerCase()]) return;
+    var row = document.createElement('tr');
+    row.innerHTML = rowHtml;
+    row.querySelector('td:nth-child(1) input').value = p.name;
+    row.querySelector('td:nth-child(2) select').value = p.type;
+    row.querySelector('td:nth-child(3) select').value = p.required;
+    row.querySelector('td:nth-child(4) input').value = p.sample;
+    tbody.appendChild(row);
+    existingNames[p.name.toLowerCase()] = true;
+    added++;
+  });
+
+  // Drop leftover empty rows once real content exists (always keep at least one row).
+  if (added > 0) {
+    blankRows.forEach(function(row) {
+      if (tbody.querySelectorAll('tr').length > 1) row.remove();
+    });
+  }
+  return added;
+}
+
+
 // === Form: Save Draft ===
 var DRAFT_KEY = 'email-intake-draft';
 
@@ -891,6 +1199,17 @@ function saveDraft() {
   });
   data.params = params;
   localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+
+  // LOCAL TEST MODE: the draft is already saved in your browser above. On localhost,
+  // skip the shared backend so testing never writes to the colleague\u2019s database.
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    var dbtn = document.querySelector('.actions .btn-secondary');
+    var dorig = dbtn.textContent;
+    dbtn.textContent = 'Draft Saved (local)';
+    dbtn.disabled = true;
+    setTimeout(function() { dbtn.textContent = dorig; dbtn.disabled = false; }, 1500);
+    return;
+  }
 
   var apiData = {
     templateName: data.templateName || '',
@@ -1019,6 +1338,17 @@ function submitForm() {
   var submitBtn = document.querySelector('.actions .btn-primary');
   submitBtn.disabled = true;
   submitBtn.textContent = 'Submitting...';
+
+  // LOCAL TEST MODE: on localhost, don't POST to the colleague's shared backend/database.
+  // Simulate a successful submit so the full flow can be tested without affecting real data.
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    setTimeout(function() {
+      alert('Local test mode\n\nYour request passed all checks and is ready to submit. Nothing was sent to the shared server, so your colleague\u2019s data is untouched. On the live site this would go to the review team.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Request';
+    }, 500);
+    return;
+  }
 
   var url = editingId ? API_BASE + '/requirements/' + editingId : API_BASE + '/requirements';
   var method = editingId ? 'PUT' : 'POST';
