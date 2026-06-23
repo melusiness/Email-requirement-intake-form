@@ -901,6 +901,26 @@ function lockRow(btn) {
 }
 
 
+// === DEMO ONLY: one-click sample data for Section 1 ===
+// Lets you fill Section 1 instantly during a live demo. To remove later, delete
+// this function, the #demo-fill-btn button in Section 1, and the .btn-demo-fill CSS.
+function fillDemoData() {
+  var demo = {
+    templateName: "Copilot Connector Email Notification - Connection Failure Alert",
+    purpose: "Admins are not notified when their connector connection fails, so indexed content goes stale and Copilot returns incomplete results for end users.",
+    audience: "External M365 Copilot administrators (customers) who configured the connection in the Microsoft 365 admin center.",
+    trigger: "Triggered immediately when the connection status changes to 'Failed' in the connector service.",
+    cta: "Sign in to the Microsoft 365 admin center, review the failed connection, and reconnect.",
+    frequencyCap: "No more than 1 email per connection per 24 hours."
+  };
+  Object.keys(demo).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.value = demo[id];
+  });
+  document.getElementById('templateName').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+
 // === AI Draft Assistant (local generator) ===
 // Builds a first-draft email from the Purpose / Audience / Trigger / CTA fields
 // entirely in the browser — no API key, works offline.
