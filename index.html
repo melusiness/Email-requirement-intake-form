@@ -201,16 +201,6 @@
   .track-paratag { display: inline-block; font-size: 9.5px; color: #6a4fd0; background: #fff; border: 1px solid #d8cef0; border-radius: 3px; padding: 1px 7px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
   .track-spin { width: 11px; height: 11px; border: 2px solid rgba(59,77,138,.25); border-top-color: #3b4d8a; border-radius: 50%; display: inline-block; animation: ai-spin .7s linear infinite; }
 
-  /* Demo console (demo only) */
-  .demo-console { margin-top: 16px; background: #fffdf5; border: 1px dashed #e0d4a0; border-radius: 8px; padding: 14px 16px; }
-  .demo-console h4 { font-size: 11px; color: #9a7d1a; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: .4px; font-weight: 700; }
-  .demo-grid { display: flex; flex-direction: column; gap: 8px; }
-  .demo-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .demo-row .demo-stage-name { font-size: 12px; color: #555; width: 150px; font-weight: 600; flex-shrink: 0; }
-  .demo-row select, .demo-row input { font-size: 12px; padding: 5px 8px; border: 1px solid #ddd; border-radius: 5px; font-family: inherit; background: #fff; }
-  .demo-row .demo-reason { flex: 1; min-width: 160px; }
-  .demo-row .demo-link { width: 200px; }
-
   .view { display: none; }
   .view.active { display: block; }
 
@@ -811,7 +801,6 @@ function escapeAttr(str) {
 // Demo: each stage status is stored per-submission in the browser (localStorage).
 // Shape is backend-ready: every stage is { status, at, reason, link }.
 // status = pending | in_progress | passed | failed.
-var PIPELINE_KEY_PREFIX = 'pipeline-';
 var PIPELINE_STAGES = [
   { id: 'submitted',  name: 'Submitted',        desc: 'Request received from submitter.' },
   { id: 'precheck',   name: 'Pre-check Review',  desc: 'Our team validates the request before downstream tickets.' },
@@ -821,32 +810,91 @@ var PIPELINE_STAGES = [
   { id: 'meo_send',   name: 'MEO Send',          desc: 'MEO sends the email to recipients.' }
 ];
 
-function defaultPipeline() {
-  return {
-    submitted:  { status: 'passed', at: '' },
-    precheck:   { status: 'in_progress', at: '' },
+// Demo: each submission is mapped (deterministically by its id) to one of a few
+// typical pipeline states, so different submissions showcase different progress.
+function ago(days, hh, mm) {
+  var d = new Date();
+  d.setDate(d.getDate() - days);
+  d.setHours(hh, mm, 0, 0);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+}
+
+// Each scenario returns a fresh pipeline object (timestamps are relative to today).
+var PIPELINE_SCENARIOS = [
+  // 1) Fully sent \u2014 everything green
+  function() { return {
+    submitted:  { status: 'passed', at: ago(6, 9, 12) },
+    precheck:   { status: 'passed', at: ago(5, 14, 30) },
+    compliance: { status: 'passed', at: ago(3, 11, 5) },
+    security:   { status: 'passed', at: ago(3, 16, 40) },
+    meo_review: { status: 'passed', at: ago(2, 10, 15), link: 'https://meo.microsoft.com/review/RV-4821' },
+    meo_send:   { status: 'passed', at: ago(1, 9, 0) }
+  }; },
+  // 2) Parallel reviews both in progress
+  function() { return {
+    submitted:  { status: 'passed', at: ago(3, 10, 2) },
+    precheck:   { status: 'passed', at: ago(2, 15, 20) },
+    compliance: { status: 'in_progress', at: ago(1, 9, 30) },
+    security:   { status: 'in_progress', at: ago(1, 9, 30) },
+    meo_review: { status: 'pending', link: '' },
+    meo_send:   { status: 'pending' }
+  }; },
+  // 3) Security review failed
+  function() { return {
+    submitted:  { status: 'passed', at: ago(4, 9, 0) },
+    precheck:   { status: 'passed', at: ago(3, 13, 45) },
+    compliance: { status: 'passed', at: ago(2, 11, 10) },
+    security:   { status: 'failed', at: ago(1, 15, 25), reason: 'Email body contains an external tracking pixel that violates the data-collection policy. Remove it and resubmit for review.' },
+    meo_review: { status: 'pending', link: '' },
+    meo_send:   { status: 'pending' }
+  }; },
+  // 4) MEO review in progress (with link)
+  function() { return {
+    submitted:  { status: 'passed', at: ago(5, 8, 30) },
+    precheck:   { status: 'passed', at: ago(4, 14, 0) },
+    compliance: { status: 'passed', at: ago(3, 10, 20) },
+    security:   { status: 'passed', at: ago(3, 17, 5) },
+    meo_review: { status: 'in_progress', at: ago(1, 11, 0), link: 'https://meo.microsoft.com/review/RV-5093' },
+    meo_send:   { status: 'pending' }
+  }; },
+  // 5) MEO send failed
+  function() { return {
+    submitted:  { status: 'passed', at: ago(7, 9, 15) },
+    precheck:   { status: 'passed', at: ago(6, 13, 30) },
+    compliance: { status: 'passed', at: ago(5, 10, 0) },
+    security:   { status: 'passed', at: ago(5, 14, 50) },
+    meo_review: { status: 'passed', at: ago(3, 11, 30), link: 'https://meo.microsoft.com/review/RV-4410' },
+    meo_send:   { status: 'failed', at: ago(2, 9, 45), reason: 'Send aborted: the recipient distribution list failed validation (3 invalid addresses). MEO requires a corrected audience list before re-sending.' }
+  }; },
+  // 6) Just submitted \u2014 pre-check in progress
+  function() { return {
+    submitted:  { status: 'passed', at: ago(1, 10, 5) },
+    precheck:   { status: 'in_progress', at: ago(0, 9, 20) },
     compliance: { status: 'pending' },
     security:   { status: 'pending' },
     meo_review: { status: 'pending', link: '' },
     meo_send:   { status: 'pending' }
-  };
+  }; },
+  // 7) Compliance failed while security still running
+  function() { return {
+    submitted:  { status: 'passed', at: ago(4, 9, 40) },
+    precheck:   { status: 'passed', at: ago(3, 12, 15) },
+    compliance: { status: 'failed', at: ago(2, 14, 0), reason: 'This notification overlaps with an existing connector health campaign. Compliance requires de-duplication with the existing series before approval.' },
+    security:   { status: 'in_progress', at: ago(2, 10, 30) },
+    meo_review: { status: 'pending', link: '' },
+    meo_send:   { status: 'pending' }
+  }; }
+];
+
+function hashId(id) {
+  var h = 0, s = String(id || '');
+  for (var i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0; }
+  return h;
 }
 
 function getPipeline(id) {
-  try {
-    var raw = localStorage.getItem(PIPELINE_KEY_PREFIX + id);
-    if (raw) return JSON.parse(raw);
-  } catch (e) {}
-  return defaultPipeline();
-}
-
-function savePipeline(id, p) {
-  try { localStorage.setItem(PIPELINE_KEY_PREFIX + id, JSON.stringify(p)); } catch (e) {}
-}
-
-function pipelineNow() {
-  var d = new Date();
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  var idx = hashId(id) % PIPELINE_SCENARIOS.length;
+  return PIPELINE_SCENARIOS[idx]();
 }
 
 function pipelineSafeUrl(u) {
@@ -906,83 +954,7 @@ function renderTracker(id) {
     }
   }
   html += '</div>';
-  html += renderDemoConsole(id, p);
   wrap.innerHTML = html;
-}
-
-function renderDemoConsole(id, p) {
-  var statuses = [['pending', 'Pending'], ['in_progress', 'In progress'], ['passed', 'Passed'], ['failed', 'Failed']];
-  var h = '<div class="demo-console">';
-  h += '<h4>\uD83C\uDFAC Demo Console <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#b0a060;">\u2014 drive stage status manually (demo only, saved in your browser)</span></h4>';
-  h += '<div class="demo-grid">';
-  PIPELINE_STAGES.forEach(function(s) {
-    if (s.id === 'submitted') return;
-    var d = p[s.id] || {};
-    var st = d.status || 'pending';
-    h += '<div class="demo-row"><span class="demo-stage-name">' + escapeHtml(s.name) + '</span>';
-    h += '<select onchange="demoSetStatus(\'' + id + '\',\'' + s.id + '\',this.value)">';
-    statuses.forEach(function(o) { h += '<option value="' + o[0] + '"' + (o[0] === st ? ' selected' : '') + '>' + o[1] + '</option>'; });
-    h += '</select>';
-    if (s.hasLink) h += '<input type="text" class="demo-link" placeholder="MEO link (https://...)" value="' + escapeAttr(d.link || '') + '" onchange="demoSetLink(\'' + id + '\',\'' + s.id + '\',this.value)">';
-    h += '<input type="text" class="demo-reason" placeholder="Failure reason (shown when Failed)" value="' + escapeAttr(d.reason || '') + '" onchange="demoSetReason(\'' + id + '\',\'' + s.id + '\',this.value)">';
-    h += '</div>';
-  });
-  h += '</div>';
-  h += '<div style="margin-top:12px;display:flex;gap:8px;"><button class="btn-secondary" style="padding:6px 14px;font-size:12px;" onclick="demoAdvance(\'' + id + '\')">\u25B6 Advance one step</button><button class="btn-secondary" style="padding:6px 14px;font-size:12px;" onclick="demoReset(\'' + id + '\')">Reset</button></div>';
-  h += '</div>';
-  return h;
-}
-
-function demoSetStatus(id, stageId, value) {
-  var p = getPipeline(id);
-  if (!p[stageId]) p[stageId] = {};
-  p[stageId].status = value;
-  p[stageId].at = value === 'pending' ? '' : pipelineNow();
-  savePipeline(id, p);
-  renderTracker(id);
-}
-
-function demoSetReason(id, stageId, value) {
-  var p = getPipeline(id);
-  if (!p[stageId]) p[stageId] = {};
-  p[stageId].reason = value;
-  savePipeline(id, p);
-  renderTracker(id);
-}
-
-function demoSetLink(id, stageId, value) {
-  var p = getPipeline(id);
-  if (!p[stageId]) p[stageId] = {};
-  p[stageId].link = value;
-  savePipeline(id, p);
-  renderTracker(id);
-}
-
-function demoAdvance(id) {
-  var p = getPipeline(id);
-  var order = PIPELINE_STAGES.map(function(s) { return s.id; });
-  for (var k = 0; k < order.length; k++) {
-    var sid = order[k];
-    var st = (p[sid] && p[sid].status) || 'pending';
-    if (st !== 'passed') {
-      if (!p[sid]) p[sid] = {};
-      p[sid].status = 'passed';
-      p[sid].at = pipelineNow();
-      if (k + 1 < order.length) {
-        var nx = order[k + 1];
-        if (!p[nx]) p[nx] = {};
-        if (((p[nx] && p[nx].status) || 'pending') === 'pending') { p[nx].status = 'in_progress'; p[nx].at = pipelineNow(); }
-      }
-      break;
-    }
-  }
-  savePipeline(id, p);
-  renderTracker(id);
-}
-
-function demoReset(id) {
-  try { localStorage.removeItem(PIPELINE_KEY_PREFIX + id); } catch (e) {}
-  renderTracker(id);
 }
 
 // === Form: Parameter helpers ===
