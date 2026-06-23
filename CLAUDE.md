@@ -6,13 +6,32 @@
 
 - 工作分支：`dev-huichunli`（个人 demo 分支，**不要碰 `main`**）
 - 两个 remote：
-  - `origin` = `github.com/ms-anggao/...`（同事的；我只有 **Write** 权限，非 admin）
-  - `mine` = `github.com/melusiness/...`（我自己的私有备份）
-- 改完代码同时推两个：`git push origin dev-huichunli` + `git push mine dev-huichunli`
+  - `origin` = `github.com/ms-anggao/...`（同事的；我只有 **Write** 权限，非 admin）→ 无 `CLAUDE.md`，驱动线上 demo
+  - `mine` = `github.com/melusiness/...`（我自己的私有备份）→ **全量**，含 `CLAUDE.md`
 - 线上 demo：`https://ms-anggao.github.io/Email-requirement-intake-form/`
   - 同事已把 repo 的 **Pages source 切到 `dev-huichunli`**（admin-only，已上线 2026-06）
   - **demo 完需提醒同事把 Pages 切回 `main`**
 - 我的 GitHub 账户：`melusiness`（gh CLI 已登录）
+
+### 两台机器工作流（经常换机器用）
+
+- **`mine` 是全量备份的 single source**（含代码 + `CLAUDE.md`）；`origin` 故意不含 `CLAUDE.md`
+- 另一台机器**首次设置**（从自己的仓库克隆，才有 `CLAUDE.md`）：
+  ```powershell
+  git clone https://github.com/melusiness/Email-requirement-intake-form.git
+  cd Email-requirement-intake-form
+  git checkout dev-huichunli
+  git remote add origin https://github.com/ms-anggao/Email-requirement-intake-form.git
+  ```
+- **日常工作流**：
+  ```powershell
+  git pull mine dev-huichunli       # 开工前先拉自己的最新
+  # ...改代码...
+  git add -A; git commit -m "说明"
+  git push mine dev-huichunli       # 必推：全量备份
+  git push origin dev-huichunli     # 仅当需要更新线上 demo 时（会进同事 repo，不带 CLAUDE.md 才对）
+  ```
+- ⚠️ 别从 `origin` 拉来当主线，否则会丢 `CLAUDE.md`
 
 ## 重要技术现实
 
