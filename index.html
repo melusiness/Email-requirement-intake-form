@@ -862,7 +862,7 @@ var PIPELINE_SCENARIOS = {
   rejected: function() { return {
     submitted:  { status: 'passed', at: ago(8, 9, 0) },
     precheck:   { status: 'passed', at: ago(7, 13, 45) },
-    compliance: { status: 'failed', at: ago(6, 14, 0), reason: 'This reminder overlaps with the Billing team\u2019s existing license-renewal email series. Compliance requires consolidation to avoid duplicate customer messaging before approval.' },
+    compliance: { status: 'failed', at: ago(6, 14, 0), reason: 'This customer-facing reminder is missing the mandatory privacy notice link and unsubscribe (opt-out) mechanism required for promotional communications under the corporate email compliance policy. Add both before resubmitting for approval.' },
     security:   { status: 'passed', at: ago(6, 10, 30) },
     meo_review: { status: 'pending', link: '' },
     meo_send:   { status: 'pending' }
