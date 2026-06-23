@@ -720,7 +720,7 @@ function viewSubmission(id) {
       var stLabel = st.charAt(0).toUpperCase() + st.slice(1);
       var html = '<div class="section"><div class="section-header"><h2>' + escapeHtml(item.templateName) + '</h2></div><div class="section-body">';
       html += '<div style="display:flex;gap:12px;margin-bottom:20px;align-items:center;"><span class="status-badge ' + st + '">' + stLabel + '</span><span style="font-size:13px;color:#888;">Created: ' + date + ' | By: ' + escapeHtml(item.submitter) + '</span></div>';
-      if (st !== 'draft') html += '<div id="tracker-wrap"></div>';
+      if (hasTracker(item.rowKey)) html += '<div id="tracker-wrap"></div>';
       html += '<h3 style="margin:16px 0 6px;font-size:14px;color:#3b4d8a;">Purpose</h3><p style="font-size:14px;color:#555;">' + escapeHtml(item.purpose) + '</p>';
       html += '<h3 style="margin:16px 0 6px;font-size:14px;color:#3b4d8a;">Audience</h3><p style="font-size:14px;color:#555;">' + escapeHtml(item.audience) + '</p>';
       html += '<h3 style="margin:16px 0 6px;font-size:14px;color:#3b4d8a;">Trigger Condition</h3><p style="font-size:14px;color:#555;">' + escapeHtml(item.trigger) + '</p>';
@@ -739,7 +739,7 @@ function viewSubmission(id) {
       }
       html += '</div>';
       container.innerHTML = html;
-      if (st !== 'draft') renderTracker(item.rowKey);
+      if (hasTracker(item.rowKey)) renderTracker(item.rowKey);
     })
     .catch(function(err) {
       container.innerHTML = '<div class="empty-state"><p>Failed to load submission.</p></div>';
@@ -810,8 +810,9 @@ var PIPELINE_STAGES = [
   { id: 'meo_send',   name: 'MEO Send',          desc: 'MEO sends the email to recipients.' }
 ];
 
-// Demo: each submission is mapped (deterministically by its id) to one of a few
-// typical pipeline states, so different submissions showcase different progress.
+// Demo: a fixed set of real submissions each show a tracker that is CONSISTENT
+// with their top-level status. All other submissions show no tracker.
+// Map: submission id -> scenario key (which matches the submission's status).
 function ago(days, hh, mm) {
   var d = new Date();
   d.setDate(d.getDate() - days);
@@ -819,19 +820,28 @@ function ago(days, hh, mm) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
 
-// Each scenario returns a fresh pipeline object (timestamps are relative to today).
-var PIPELINE_SCENARIOS = [
-  // 1) Fully sent \u2014 everything green
-  function() { return {
-    submitted:  { status: 'passed', at: ago(6, 9, 12) },
-    precheck:   { status: 'passed', at: ago(5, 14, 30) },
-    compliance: { status: 'passed', at: ago(3, 11, 5) },
-    security:   { status: 'passed', at: ago(3, 16, 40) },
-    meo_review: { status: 'passed', at: ago(2, 10, 15), link: 'https://meo.microsoft.com/review/RV-4821' },
-    meo_send:   { status: 'passed', at: ago(1, 9, 0) }
+// The five demo submissions (top of My Submissions), one per status.
+var DEMO_TRACKERS = {
+  'mqqe0606bxrz2': 'open',       // Connection Failure Alert      -> pre-check in progress
+  'mq4ym4inbp54r': 'accepted',   // Connector Onboarded Confirmation -> fully sent (all green)
+  'mq4ylsvodaruh': 'rejected',   // License Expiry Reminder       -> review failed (with reason)
+  'mq4ylhk4wc895': 'submitted',  // Connector Health Summary      -> parallel reviews running
+  'mq4yl32ijf1bz': 'draft'       // Connector Failure Alert       -> not yet submitted (all pending)
+};
+
+// Each scenario returns a fresh pipeline object consistent with that status.
+var PIPELINE_SCENARIOS = {
+  // status: open -> just received, pre-check in progress
+  open: function() { return {
+    submitted:  { status: 'passed', at: ago(0, 9, 12) },
+    precheck:   { status: 'in_progress', at: ago(0, 10, 30) },
+    compliance: { status: 'pending' },
+    security:   { status: 'pending' },
+    meo_review: { status: 'pending', link: '' },
+    meo_send:   { status: 'pending' }
   }; },
-  // 2) Parallel reviews both in progress
-  function() { return {
+  // status: submitted -> pre-check done, parallel reviews running
+  submitted: function() { return {
     submitted:  { status: 'passed', at: ago(3, 10, 2) },
     precheck:   { status: 'passed', at: ago(2, 15, 20) },
     compliance: { status: 'in_progress', at: ago(1, 9, 30) },
@@ -839,62 +849,42 @@ var PIPELINE_SCENARIOS = [
     meo_review: { status: 'pending', link: '' },
     meo_send:   { status: 'pending' }
   }; },
-  // 3) Security review failed
-  function() { return {
-    submitted:  { status: 'passed', at: ago(4, 9, 0) },
-    precheck:   { status: 'passed', at: ago(3, 13, 45) },
-    compliance: { status: 'passed', at: ago(2, 11, 10) },
-    security:   { status: 'failed', at: ago(1, 15, 25), reason: 'Email body contains an external tracking pixel that violates the data-collection policy. Remove it and resubmit for review.' },
+  // status: accepted -> approved and fully sent
+  accepted: function() { return {
+    submitted:  { status: 'passed', at: ago(8, 9, 0) },
+    precheck:   { status: 'passed', at: ago(7, 14, 30) },
+    compliance: { status: 'passed', at: ago(5, 11, 5) },
+    security:   { status: 'passed', at: ago(5, 16, 40) },
+    meo_review: { status: 'passed', at: ago(3, 10, 15), link: 'https://meo.microsoft.com/review/RV-4821' },
+    meo_send:   { status: 'passed', at: ago(2, 9, 0) }
+  }; },
+  // status: rejected -> a review gate failed (compliance), with reason
+  rejected: function() { return {
+    submitted:  { status: 'passed', at: ago(8, 9, 0) },
+    precheck:   { status: 'passed', at: ago(7, 13, 45) },
+    compliance: { status: 'failed', at: ago(6, 14, 0), reason: 'This reminder overlaps with the Billing team\u2019s existing license-renewal email series. Compliance requires consolidation to avoid duplicate customer messaging before approval.' },
+    security:   { status: 'passed', at: ago(6, 10, 30) },
     meo_review: { status: 'pending', link: '' },
     meo_send:   { status: 'pending' }
   }; },
-  // 4) MEO review in progress (with link)
-  function() { return {
-    submitted:  { status: 'passed', at: ago(5, 8, 30) },
-    precheck:   { status: 'passed', at: ago(4, 14, 0) },
-    compliance: { status: 'passed', at: ago(3, 10, 20) },
-    security:   { status: 'passed', at: ago(3, 17, 5) },
-    meo_review: { status: 'in_progress', at: ago(1, 11, 0), link: 'https://meo.microsoft.com/review/RV-5093' },
-    meo_send:   { status: 'pending' }
-  }; },
-  // 5) MEO send failed
-  function() { return {
-    submitted:  { status: 'passed', at: ago(7, 9, 15) },
-    precheck:   { status: 'passed', at: ago(6, 13, 30) },
-    compliance: { status: 'passed', at: ago(5, 10, 0) },
-    security:   { status: 'passed', at: ago(5, 14, 50) },
-    meo_review: { status: 'passed', at: ago(3, 11, 30), link: 'https://meo.microsoft.com/review/RV-4410' },
-    meo_send:   { status: 'failed', at: ago(2, 9, 45), reason: 'Send aborted: the recipient distribution list failed validation (3 invalid addresses). MEO requires a corrected audience list before re-sending.' }
-  }; },
-  // 6) Just submitted \u2014 pre-check in progress
-  function() { return {
-    submitted:  { status: 'passed', at: ago(1, 10, 5) },
-    precheck:   { status: 'in_progress', at: ago(0, 9, 20) },
+  // status: draft -> not yet submitted, nothing has started
+  draft: function() { return {
+    submitted:  { status: 'pending' },
+    precheck:   { status: 'pending' },
     compliance: { status: 'pending' },
     security:   { status: 'pending' },
     meo_review: { status: 'pending', link: '' },
     meo_send:   { status: 'pending' }
-  }; },
-  // 7) Compliance failed while security still running
-  function() { return {
-    submitted:  { status: 'passed', at: ago(4, 9, 40) },
-    precheck:   { status: 'passed', at: ago(3, 12, 15) },
-    compliance: { status: 'failed', at: ago(2, 14, 0), reason: 'This notification overlaps with an existing connector health campaign. Compliance requires de-duplication with the existing series before approval.' },
-    security:   { status: 'in_progress', at: ago(2, 10, 30) },
-    meo_review: { status: 'pending', link: '' },
-    meo_send:   { status: 'pending' }
   }; }
-];
+};
 
-function hashId(id) {
-  var h = 0, s = String(id || '');
-  for (var i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0; }
-  return h;
+function hasTracker(id) {
+  return Object.prototype.hasOwnProperty.call(DEMO_TRACKERS, id);
 }
 
 function getPipeline(id) {
-  var idx = hashId(id) % PIPELINE_SCENARIOS.length;
-  return PIPELINE_SCENARIOS[idx]();
+  var key = DEMO_TRACKERS[id];
+  return key && PIPELINE_SCENARIOS[key] ? PIPELINE_SCENARIOS[key]() : null;
 }
 
 function pipelineSafeUrl(u) {
@@ -935,6 +925,7 @@ function renderTracker(id) {
   var wrap = document.getElementById('tracker-wrap');
   if (!wrap) return;
   var p = getPipeline(id);
+  if (!p) { wrap.innerHTML = ''; return; }
   var html = '<div class="tracker">';
   html += '<div class="tracker-title">\uD83D\uDCE6 Progress Tracker</div>';
   html += '<div class="tracker-sub">Follow your request through pre-check, the parallel compliance &amp; security reviews, and MEO sending.</div>';
