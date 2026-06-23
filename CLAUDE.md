@@ -47,9 +47,17 @@
   `Submitted → Pre-check → [Compliance ∥ Security 并行] → MEO Review(带链接) → MEO Send → Sent`
   - 纯前端，数据 shape 后端就绪：`{status, at, reason, link}`（status = pending/in_progress/passed/failed）
   - 失败显示红色 Reason；MEO 链接只允许 http(s)（防 XSS）
-  - **每条 submission 按 id 确定性映射到 7 个典型场景**（`PIPELINE_SCENARIOS` + `hashId`）：同条稳定、异条多样，便于 demo
+  - **追踪器只对 5 条真实 demo 提交显示**（`DEMO_TRACKERS` 按 id→status key 映射），场景与该提交的 `status` 严格一致；其余提交（test/重复项）不显示追踪器
   - 时间戳用相对当天 `ago(days,hh,mm)` 计算，永远显示"最近几天"
-  - 7 个场景：① 全绿已发送 ② 并行审查中 ③ 安全失败 ④ MEO审核中 ⑤ MEO发送失败 ⑥ 刚提交 ⑦ 合规失败+安全进行中
+  - 5 个状态各一个场景：
+    - `open` → Submitted✓ + Pre-check 进行中（刚提交）
+    - `submitted` → Pre-check✓ + Compliance∥Security 并行进行中
+    - `accepted` → 全绿，一路到 MEO Send 已发送
+    - `rejected` → Compliance 失败（带 Reason）+ Security 通过
+    - `draft` → 全部 pending（尚未提交）
+  - 5 个 demo id：`mqqe0606bxrz2`(open) `mq4ym4inbp54r`(accepted) `mq4ylsvodaruh`(rejected) `mq4ylhk4wc895`(submitted) `mq4yl32ijf1bz`(draft)
+  - ❌ 已删除 Demo Console 和 hashId 随机映射（用户实测要求状态一致）；不用 localStorage 存追踪状态
+  - 改映射：编辑 `DEMO_TRACKERS`（id→status）或 `PIPELINE_SCENARIOS`（status→各 stage）
   - ❌ 已删除 Demo Console（用户实测不喜欢）；不再用 localStorage 存追踪状态
   - 想让某条提交固定显示某场景：调 `hashId` 映射或按 templateName 特判
 
