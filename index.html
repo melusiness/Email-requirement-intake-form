@@ -73,10 +73,6 @@
   .ai-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; display: inline-block; animation: ai-spin .7s linear infinite; }
   @keyframes ai-spin { to { transform: rotate(360deg); } }
 
-  /* DEMO ONLY \u2014 one-click sample fill button (remove before handoff) */
-  .btn-demo-fill { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.4); padding: 6px 14px; border-radius: 5px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background .15s; }
-  .btn-demo-fill:hover { background: rgba(255,255,255,.28); }
-
   /* Parameters table */
   .params-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 16px; border: 1px solid #e8e9ed; border-radius: 6px; overflow: hidden; }
   .params-table th { background: #f4f5f8; font-size: 12px; font-weight: 600; text-align: left; padding: 12px 14px; border-bottom: 1px solid #e8e9ed; color: #888; letter-spacing: .2px; text-transform: uppercase; }
@@ -321,11 +317,6 @@
     <div class="section-header">
       <div class="num">1</div>
       <h2>Request Information</h2>
-      <!-- DEMO ONLY: one-click sample fill for live demos. Remove this button before handoff. -->
-      <button type="button" class="btn-demo-fill" id="demo-fill-btn" onclick="fillDemoData()" title="Fill Section 1 with sample data for demos">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9z"/></svg>
-        Fill Demo Data
-      </button>
     </div>
     <div class="section-body">
       <div class="form-group">
@@ -1091,26 +1082,6 @@ function lockRow(btn) {
   btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#3a8a3a" stroke-width="2" stroke-linecap="round"><path d="M2 7.5l3.5 3.5 6.5-7"/></svg>';
   btn.classList.add('locked');
   btn.disabled = true;
-}
-
-
-// === DEMO ONLY: one-click sample data for Section 1 ===
-// Lets you fill Section 1 instantly during a live demo. To remove later, delete
-// this function, the #demo-fill-btn button in Section 1, and the .btn-demo-fill CSS.
-function fillDemoData() {
-  var demo = {
-    templateName: "Copilot Connector Email Notification - Connection Failure Alert",
-    purpose: "Admins are not notified when their connector connection fails, so indexed content goes stale and Copilot returns incomplete results for end users.",
-    audience: "External M365 Copilot administrators (customers) who configured the connection in the Microsoft 365 admin center.",
-    trigger: "Triggered immediately when the connection status changes to 'Failed' in the connector service.",
-    cta: "Sign in to the Microsoft 365 admin center, review the failed connection, and reconnect.",
-    frequencyCap: "No more than 1 email per connection per 24 hours."
-  };
-  Object.keys(demo).forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.value = demo[id];
-  });
-  document.getElementById('templateName').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 
